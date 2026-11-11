@@ -3738,8 +3738,13 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 
 				// Same gate as the keypad move gesture, plus: only the box under the
 				// cursor can be picked up, and it has to be a real entry.
-				const bool touchOnGridTile = startTouch.px >= 8 && startTouch.px < 248
-						&& ((startTouch.py >= 22 && startTouch.py < 86) || (startTouch.py >= 102 && startTouch.py < 166));
+				const int touchGridCol = (startTouch.px >= 8 && startTouch.px < 72) ? 0
+						: (startTouch.px >= 96 && startTouch.px < 160) ? 1
+						: (startTouch.px >= 184 && startTouch.px < 248) ? 2 : -1;
+				const int touchGridRow = (startTouch.py >= 22 && startTouch.py < 86) ? 0
+						: (startTouch.py >= 102 && startTouch.py < 166) ? 1 : -1;
+				const bool touchOnGridTile = touchGridCol >= 0 && touchGridRow >= 0
+						&& CURPOS % 6 == touchGridRow * 3 + touchGridCol;
 				const bool canLift = !dirInfoIniFound
 						&& ms().sortMethod == TWLSettings::ESortCustom
 						&& ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL
