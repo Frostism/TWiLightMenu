@@ -1095,7 +1095,11 @@ void vBlankHandler() {
 		// Playback animated icons
 		for (int i = 0; i < ((movingApp != -1) ? 41 : 40); i++) {
 			if (bnriconisDSi[i] && playBannerSequence(i) && !updateFrame) {
-				updateFrame = (displayGameIcons && (ms().theme != TWLSettings::EThemeSaturn)) ? ((i >= CURPOS-ICON_GRID_MAX_OFFSET && i <= CURPOS+ICON_GRID_MAX_OFFSET) || i == 40) : (i == CURPOS);
+				updateFrame = (displayGameIcons && (ms().theme != TWLSettings::EThemeSaturn))
+					? (ms().theme == TWLSettings::ETheme3DS
+						? (i >= (CURPOS / 6) * 6 && i < (CURPOS / 6) * 6 + 6)
+						: ((i >= CURPOS-ICON_GRID_MAX_OFFSET && i <= CURPOS+ICON_GRID_MAX_OFFSET) || i == 40))
+					: (i == CURPOS);
 			}
 		}
 	}
@@ -1253,7 +1257,10 @@ void vBlankHandler() {
 			static_assert(2 * ICON_GRID_MAX_OFFSET + 1 <= ICON_GRID_BANKS,
 					  "icon grid draws more boxes than it has texture banks");
 			int maxIconNumber = (ms().theme == TWLSettings::EThemeSaturn ? 0 : ICON_GRID_MAX_OFFSET);
-			for (int pos = std::max(CURPOS - maxIconNumber, 0); pos <= std::min(CURPOS + maxIconNumber, 39); pos++) {
+			int gridStart = (CURPOS / 6) * 6;
+			int firstIcon = (ms().theme == TWLSettings::ETheme3DS) ? gridStart : std::max(CURPOS - maxIconNumber, 0);
+			int lastIcon = (ms().theme == TWLSettings::ETheme3DS) ? std::min(gridStart + 5, 39) : std::min(CURPOS + maxIconNumber, 39);
+			for (int pos = firstIcon; pos <= lastIcon; pos++) {
 				int i = pos;
 
 				// Stop drawing if the rest of the boxes are empty (with hide empty boxes enabled)
@@ -1307,53 +1314,65 @@ void vBlankHandler() {
 				// two glSprite/drawIcon pairs per frame and stops drawIcon marking
 				// palettes dirty for entries nobody can see. Every sprite drawn at
 				// this x (box full/empty, folder, settings) is a fixed 64px wide.
-				const int boxScreenX = spawnedboxXpos - titleboxXpos[ms().secondaryDevice];
-				if (boxScreenX <= -64 || boxScreenX >= SCREEN_WIDTH)
+				const int originalBoxX = boxDrawX;
+				const int originalIconX = iconDrawX;
+				int boxDrawX = originalBoxX;
+				int iconDrawX = originalIconX;
+				int boxDrawY = titleboxYpos + titleboxYposDropDown[i % 5];
+				int iconDrawY = boxDrawY + iconYposOnTitleBox;
+				if (ms().theme == TWLSettings::ETheme3DS) {
+					const int cell = pos - gridStart;
+					boxDrawX = 8 + (cell % 3) * 88;
+					iconDrawX = boxDrawX + 16;
+					boxDrawY = 22 + (cell / 3) * 80;
+					iconDrawY = boxDrawY + 16;
+				}
+				if (boxDrawX <= -64 || boxDrawX >= SCREEN_WIDTH)
 					continue;
 
 				if (i < spawnedtitleboxes) {
 					if (isDirectory[i]) {
 						if (ms().theme == TWLSettings::ETheme3DS)
-							glSprite(spawnedboxXpos - titleboxXpos[ms().secondaryDevice],
-									 titleboxYpos, GL_FLIP_NONE,
+							glSprite(boxDrawX,
+									 boxDrawY, GL_FLIP_NONE,
 									 tex().folderImage());
 						else
-							glSprite(spawnedboxXpos - titleboxXpos[ms().secondaryDevice],
+							glSprite(boxDrawX,
 									 (titleboxYpos - 3) + titleboxYposDropDown[i % 5],
 									 GL_FLIP_NONE, tex().folderImage());
 						if (customIcon[i])
-							drawIcon(iconXpos - titleboxXpos[ms().secondaryDevice],
-									 (titleboxYpos + iconYposOnTitleBox) + titleboxYposDropDown[i % 5],
+							drawIcon(iconDrawX,
+									 iconDrawY,
 									 i);
 					} else if (!applaunchprep || CURPOS != i) { // Only draw the icon if we're not launching the selcted app
 						if (!bnrSysSettings[i]) {
 							if (ms().theme == TWLSettings::ETheme3DS) {
-								glSprite(spawnedboxXpos - titleboxXpos[ms().secondaryDevice],
-										 titleboxYpos, GL_FLIP_NONE,
+								glSprite(boxDrawX,
+										 boxDrawY, GL_FLIP_NONE,
 										 tex().boxfullImage());
 							} else {
-								glSprite(spawnedboxXpos - titleboxXpos[ms().secondaryDevice],
+								glSprite(boxDrawX,
 										 titleboxYpos + titleboxYposDropDown[i % 5],
 										 GL_FLIP_NONE, &tex().boxfullImage()[0]);
 							}
 						}
 						if (bnrSysSettings[i])
-							glSprite(spawnedboxXpos - titleboxXpos[ms().secondaryDevice],
-									 (titleboxYpos - 1) + titleboxYposDropDown[i % 5],
+							glSprite(boxDrawX,
+									 (ms().theme == TWLSettings::ETheme3DS ? boxDrawY : (titleboxYpos - 1) + titleboxYposDropDown[i % 5]),
 									 GL_FLIP_NONE, &tex().settingsImage()[1]);
 						else
-							drawIcon(iconXpos - titleboxXpos[ms().secondaryDevice],
-										(titleboxYpos + iconYposOnTitleBox) + titleboxYposDropDown[i % 5],
+							drawIcon(iconDrawX,
+										iconDrawY,
 										i);
 					}
 				} else {
 					// Empty box
 					if (ms().theme > TWLSettings::EThemeDSi) {
-						glSprite(spawnedboxXpos - titleboxXpos[ms().secondaryDevice],
+						glSprite(boxDrawX,
 								 titleboxYpos + titleboxYposDropDown[i % 5],
 								 GL_FLIP_NONE, tex().boxemptyImage());
 					} else {
-						glSprite(spawnedboxXpos - titleboxXpos[ms().secondaryDevice],
+						glSprite(boxDrawX,
 								 titleboxYpos + titleboxYposDropDown[i % 5],
 								 GL_FLIP_NONE, &tex().boxfullImage()[1]);
 					}
@@ -1472,14 +1491,16 @@ void vBlankHandler() {
 			dots().drawAuto();
 		}
 		if (showSTARTborder && displayGameIcons && (ms().theme < 4)) {
-			glSprite(96, tc().startBorderRenderY(), GL_FLIP_NONE,
+			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? 8 + (CURPOS % 3) * 88 : 96;
+			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? 22 + ((CURPOS % 6) / 3) * 80 : tc().startBorderRenderY();
+			glSprite(startBorderX, startBorderY, GL_FLIP_NONE,
 				 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
 							(tc().startBorderSpriteH() - 1)]);
-			glSprite(96 + tc().startBorderSpriteW(), tc().startBorderRenderY(), GL_FLIP_H,
+			glSprite(startBorderX + tc().startBorderSpriteW(), startBorderY, GL_FLIP_H,
 				 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
 							(tc().startBorderSpriteH() - 1)]);
 			if (bnrWirelessIcon[CURPOS] > 0)
-				glSprite(96, tc().startBorderRenderY(), GL_FLIP_NONE,
+				glSprite(startBorderX, startBorderY, GL_FLIP_NONE,
 					 &tex().wirelessIcons()[(bnrWirelessIcon[CURPOS] - 1) & 31]);
 
 			if (currentBg == 1 && tc().playStopSound() && needToPlayStopSound &&
