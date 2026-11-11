@@ -553,7 +553,9 @@ static void moveGridCursor(int offset, const std::vector<DirEntry> &entries) {
 		bannerTextShown = false;
 	}
 	updateText(false);
-	showSTARTborder = true;
+	showSTARTborder = movingApp == -1;
+	if (ms().theme == TWLSettings::ETheme3DS && movingApp != -1)
+		movingAppXpos = 8 + (CURPOS % 3) * 88;
 	boxArtLoaded = false;
 	settingsChanged = true;
 	waitForNeedToPlayStopSound = 1;
@@ -3028,6 +3030,8 @@ static MoveModeState beginMoveMode(SwitchState scrn, const std::vector<std::vect
 		bgOperations(true);
 	}
 	movingAppXpos = movingAppXmax;
+	if (ms().theme == TWLSettings::ETheme3DS)
+		movingAppXpos = 8 + (CURPOS % 3) * 88;
 
 	showMovingArrow = true;
 
@@ -3053,6 +3057,8 @@ static bool moveModePageFlip(bool forward, bool landAtEnd, SwitchState scrn,
 	}
 	PAGENUM += forward ? 1 : -1;
 	CURPOS = 0;
+	if (ms().theme == TWLSettings::ETheme3DS)
+		movingAppXpos = 8;
 	titleboxXdest[ms().secondaryDevice] = 0;
 	titlewindowXdest[ms().secondaryDevice] = 0;
 	titleboxXpos[ms().secondaryDevice] = titleboxXdest[ms().secondaryDevice];
@@ -3109,14 +3115,14 @@ static void endMoveMode(SwitchState scrn, std::vector<std::vector<DirEntry>> &di
 	showMovingArrow = false;
 
 	const int dropFromX = movingAppXpos;
+	const int dropTargetX = (ms().theme == TWLSettings::ETheme3DS) ? 8 + (CURPOS % 3) * 88 : MOVE_HELD_X;
 	const int dropFromY = std::max(movingAppYpos, 1);
 	while (movingAppYpos > 0) {
 		movingAppYpos -= std::max(movingAppYpos / 3, 1);
-		// Slide back onto the gap as it falls, so a stylus drop does not snap sideways.
-		movingAppXpos = MOVE_HELD_X + (dropFromX - MOVE_HELD_X) * movingAppYpos / dropFromY;
+		movingAppXpos = dropTargetX + (dropFromX - dropTargetX) * movingAppYpos / dropFromY;
 		bgOperations(true);
 	}
-	movingAppXpos = MOVE_HELD_X;
+	movingAppXpos = dropTargetX;
 
 	if (movingApp != -1 && ((PAGENUM != mv.orgPage) || (CURPOS != mv.orgCursorPosition))) {
 		currentBg = 1;
@@ -3632,6 +3638,10 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 							snd().playWrong();
 							edgeBumpSoundPlayed = true;
 						}
+					} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_UP)) {
+						moveGridCursor(-3, dirContents[scrn]);
+					} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_DOWN)) {
+						moveGridCursor(3, dirContents[scrn]);
 					} else if (pressed & KEY_DOWN) {
 						break;
 					} else if (pressed & KEY_L) {
@@ -3726,12 +3736,13 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 
 				// Same gate as the keypad move gesture, plus: only the box under the
 				// cursor can be picked up, and it has to be a real entry.
-				const bool canLift = ms().theme != TWLSettings::ETheme3DS
-						&& !dirInfoIniFound
+				const bool touchOnGridTile = startTouch.px >= 8 && startTouch.px < 248
+						&& ((startTouch.py >= 22 && startTouch.py < 86) || (startTouch.py >= 102 && startTouch.py < 166));
+				const bool canLift = !dirInfoIniFound
 						&& ms().sortMethod == TWLSettings::ESortCustom
 						&& ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL
 						&& (PAGENUM > 0 || CURPOS > 0 || !backFound)
-						&& startTouch.px >= 96 && startTouch.px < 160 // the moveBy == 0 band below
+						&& (ms().theme == TWLSettings::ETheme3DS ? touchOnGridTile : (startTouch.px >= 96 && startTouch.px < 160))
 						&& CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size());
 
 				int holdFrames = 0;
@@ -3790,7 +3801,16 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 						const int hi = maxInsertSlot(dirContents[scrn]);
 						// hi < lo only for a page with nothing movable on it, which canLift
 						// already excludes; guard anyway, since std::clamp would be UB.
-						const int want = (hi < lo) ? CURPOS : std::clamp(insertSlotAtScreenX(touch.px), lo, hi);
+						int want = CURPOS;
+						if (hi >= lo) {
+							if (ms().theme == TWLSettings::ETheme3DS) {
+								const int col = std::clamp((touch.px - 8) / 88, 0, 2);
+								const int row = touch.py >= 96 ? 1 : 0;
+								want = std::clamp((CURPOS / 6) * 6 + row * 3 + col, lo, hi);
+							} else {
+								want = std::clamp(insertSlotAtScreenX(touch.px), lo, hi);
+							}
+						}
 
 						if (scrollDelay > 0)
 							scrollDelay--;
@@ -3799,7 +3819,10 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 						if (settled && scrollDelay == 0 && want != CURPOS) {
 							// The row slides under the stylus, so holding near an edge keeps
 							// re-evaluating to CURPOS +/- 1 -- this is also the edge auto-scroll.
-							moveHeldCursor(want > CURPOS, dirContents[scrn]);
+							if (ms().theme == TWLSettings::ETheme3DS)
+								moveGridCursor(want - CURPOS, dirContents[scrn]);
+							else
+								moveHeldCursor(want > CURPOS, dirContents[scrn]);
 							scrollDelay = MOVE_SCROLL_DELAY;
 							edgeDwell = 0;
 						} else if (settled && want == CURPOS
