@@ -3916,11 +3916,6 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 							refreshGridIcons(scrn, dirContents, CURPOS, false);
 						}
 					}
-				} else if (ms().theme != TWLSettings::EThemeSaturn) {
-						CURPOS = std::clamp(CURPOS + moveBy, 0, last_used_box);
-
-						refreshGridIcons(scrn, dirContents, CURPOS, false);
-					}
 				} else if (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::ETheme3DS) {
 					draggingIcons = true;
 					int prevPos = CURPOS;
