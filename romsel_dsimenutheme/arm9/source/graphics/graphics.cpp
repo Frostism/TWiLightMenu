@@ -1314,8 +1314,8 @@ void vBlankHandler() {
 				// two glSprite/drawIcon pairs per frame and stops drawIcon marking
 				// palettes dirty for entries nobody can see. Every sprite drawn at
 				// this x (box full/empty, folder, settings) is a fixed 64px wide.
-				const int originalBoxX = boxDrawX;
-				const int originalIconX = iconDrawX;
+				const int originalBoxX = spawnedboxXpos - titleboxXpos[ms().secondaryDevice];
+				const int originalIconX = iconXpos - titleboxXpos[ms().secondaryDevice];
 				int boxDrawX = originalBoxX;
 				int iconDrawX = originalIconX;
 				int boxDrawY = titleboxYpos + titleboxYposDropDown[i % 5];
@@ -1369,11 +1369,11 @@ void vBlankHandler() {
 					// Empty box
 					if (ms().theme > TWLSettings::EThemeDSi) {
 						glSprite(boxDrawX,
-								 titleboxYpos + titleboxYposDropDown[i % 5],
+								 boxDrawY,
 								 GL_FLIP_NONE, tex().boxemptyImage());
 					} else {
 						glSprite(boxDrawX,
-								 titleboxYpos + titleboxYposDropDown[i % 5],
+								 boxDrawY,
 								 GL_FLIP_NONE, &tex().boxfullImage()[1]);
 					}
 				}
