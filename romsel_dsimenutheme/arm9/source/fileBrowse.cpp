@@ -512,12 +512,15 @@ void displayNowLoading(void) {
 // the progress bar animates. The touch and drag paths must pass false, or they
 // stall the scroll by a vblank per icon.
 static void refreshGridIcons(const std::vector<DirEntry> &entries, int centre, bool waitVBlank) {
-	const int first = std::max(centre - ICON_GRID_MAX_OFFSET, 0);
-	const int last = std::min(centre + ICON_GRID_MAX_OFFSET, 39);
+	const int first = (ms().theme == TWLSettings::ETheme3DS)
+			? (centre / 6) * 6
+			: std::max(centre - ICON_GRID_MAX_OFFSET, 0);
+	const int last = (ms().theme == TWLSettings::ETheme3DS)
+			? std::min(first + 5, 39)
+			: std::min(centre + ICON_GRID_MAX_OFFSET, 39);
 
 	for (int pos = first; pos <= last; pos++) {
 		const int idx = pos + PAGENUM * 40;
-		// idx only increases, so nothing further can be in range.
 		if (idx >= file_count || idx >= (int)entries.size())
 			break;
 		if (waitVBlank)
@@ -529,6 +532,32 @@ static void refreshGridIcons(const std::vector<DirEntry> &entries, int centre, b
 static inline void refreshGridIcons(SwitchState scrn, const std::vector<std::vector<DirEntry>> &dirContents,
 					int centre, bool waitVBlank) {
 	refreshGridIcons(dirContents[scrn], centre, waitVBlank);
+}
+
+static void moveGridCursor(int offset, const std::vector<DirEntry> &entries) {
+	const int target = std::clamp(CURPOS + offset, 0, last_used_box);
+	if (target == CURPOS) {
+		snd().playWrong();
+		return;
+	}
+	CURPOS = target;
+	refreshGridIcons(entries, CURPOS, false);
+	clearText(false);
+	if (CURPOS + PAGENUM * 40 < (int)entries.size()) {
+		currentBg = 1;
+		titleUpdate(entries[CURPOS + PAGENUM * 40].isDirectory,
+				entries[CURPOS + PAGENUM * 40].name, CURPOS);
+		bannerTextShown = true;
+	} else {
+		currentBg = 0;
+		bannerTextShown = false;
+	}
+	updateText(false);
+	showSTARTborder = true;
+	boxArtLoaded = false;
+	settingsChanged = true;
+	waitForNeedToPlayStopSound = 1;
+	snd().playSelect();
 }
 
 // The non-blocking half of moveCursor(), for the stylus drag. moveCursor spins
@@ -3546,20 +3575,30 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 			buttonArrowTouched[1] = ((keysHeld() & KEY_TOUCH) && touch.py > 171 && touch.px > 236);
 
 			if ((held & KEY_LEFT) || ((held & KEY_TOUCH) && touch.py > 171 && touch.px < 19 && ms().theme == TWLSettings::EThemeDSi)) { // Left or button arrow (DSi theme)
-				moveCursor(false, dirContents[scrn]);
+				if (ms().theme == TWLSettings::ETheme3DS)
+					moveGridCursor(-1, dirContents[scrn]);
+				else
+					moveCursor(false, dirContents[scrn]);
 				dsiBinariesChecked = false;
 				apChecked = false;
 				checkedDSiWareCompatibleB4DS = false;
 				dsiWareRAMLimitMsgPrepped = false;
 				infoCheckTimer = 0;
 			} else if ((held & KEY_RIGHT) || ((held & KEY_TOUCH) && touch.py > 171 && touch.px > 236 && ms().theme == TWLSettings::EThemeDSi)) { // Right or button arrow (DSi theme)
-				moveCursor(true, dirContents[scrn]);
+				if (ms().theme == TWLSettings::ETheme3DS)
+					moveGridCursor(1, dirContents[scrn]);
+				else
+					moveCursor(true, dirContents[scrn]);
 				dsiBinariesChecked = false;
 				apChecked = false;
 				checkedDSiWareCompatibleB4DS = false;
 				dsiWareRAMLimitMsgPrepped = false;
 				infoCheckTimer = 0;
-			} else if ((pressed & KEY_UP) && (PAGENUM > 0 || CURPOS > 0 || !backFound) && (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL) && !dirInfoIniFound && (ms().sortMethod == 4) && (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))) { // Move apps (DSi & 3DS themes)
+			} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_UP)) {
+				moveGridCursor(-3, dirContents[scrn]);
+			} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_DOWN)) {
+				moveGridCursor(3, dirContents[scrn]);
+			} else if ((pressed & KEY_UP) && (PAGENUM > 0 || CURPOS > 0 || !backFound) && (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL && ms().theme != TWLSettings::ETheme3DS) && !dirInfoIniFound && (ms().sortMethod == 4) && (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))) { // Move apps (DSi theme)
 				MoveModeState mv = beginMoveMode(scrn, dirContents, /* followStylus = */ false, 0);
 
 				while (1) {
@@ -3663,7 +3702,8 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				touch = startTouch;
 				if (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))
 					showSTARTborder = true;
-			} else if ((pressed & KEY_TOUCH) && touch.py > 76 && touch.py < (ms().theme == TWLSettings::EThemeDSi ? 164 : 144)) { // Dragging icons
+			} else if ((pressed & KEY_TOUCH) && touch.py > (ms().theme == TWLSettings::ETheme3DS ? 16 : 76)
+					&& touch.py < (ms().theme == TWLSettings::EThemeDSi ? 164 : (ms().theme == TWLSettings::ETheme3DS ? 172 : 144))) { // Selecting or dragging icons
 				touchPosition startTouch = touch;
 				touchPosition prevTouch1 = touch;
 				touchPosition prevTouch2 = touch;
@@ -3680,7 +3720,8 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 
 				// Same gate as the keypad move gesture, plus: only the box under the
 				// cursor can be picked up, and it has to be a real entry.
-				const bool canLift = !dirInfoIniFound
+				const bool canLift = ms().theme != TWLSettings::ETheme3DS
+						&& !dirInfoIniFound
 						&& ms().sortMethod == TWLSettings::ESortCustom
 						&& ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL
 						&& (PAGENUM > 0 || CURPOS > 0 || !backFound)
@@ -3785,72 +3826,88 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 
 					endMoveMode(scrn, dirContents, mv);
 				} else if (tapped) {
-					int moveBy;
-					if (startTouch.px < 39)
-						moveBy = -2;
-					else if (startTouch.px < 96)
-						moveBy = -1;
-					else if (startTouch.px < 160)
-						moveBy = 0;
-					else if (startTouch.px < 217)
-						moveBy = 1;
-					else
-						moveBy = 2;
-
-					if (moveBy == 0) {
-						gameTapped = bannerTextShown && showSTARTborder;
-					} else if (ms().theme == TWLSettings::EThemeDSi) {
-						if (moveBy != -2 && moveBy != 2) {
-							moveCursor(moveBy == 1, dirContents[scrn]);
-						} else {
-							const int CURPOS1 = std::clamp(moveBy > 0 ? (CURPOS + 1) : (CURPOS - 1), 0, last_used_box);
-							CURPOS = std::clamp(CURPOS + moveBy, 0, last_used_box);
-
-							snd().playSelect();
-
-							titlewindowXdest[ms().secondaryDevice] = CURPOS * 5;
-							titleboxXdest[ms().secondaryDevice] = CURPOS * titleboxXspacing;
-							boxArtLoaded = false;
-							settingsChanged = true;
-							bannerTextShown = false;
-							touch = startTouch;
-							if (CURPOS + PAGENUM * 40 >= ((int)dirContents[scrn].size())) {
-								showSTARTborder = (ms().theme == TWLSettings::ETheme3DS ? true : false);
-							} else {
+					if (ms().theme == TWLSettings::ETheme3DS) {
+						const int col = (startTouch.px >= 8 && startTouch.px < 72) ? 0
+							: (startTouch.px >= 96 && startTouch.px < 160) ? 1
+							: (startTouch.px >= 184 && startTouch.px < 248) ? 2 : -1;
+						const int row = (startTouch.py >= 22 && startTouch.py < 86) ? 0
+							: (startTouch.py >= 102 && startTouch.py < 166) ? 1 : -1;
+						if (col >= 0 && row >= 0) {
+							const int target = (CURPOS / 6) * 6 + row * 3 + col;
+							if (target <= last_used_box) {
+								CURPOS = target;
+								refreshGridIcons(scrn, dirContents, CURPOS, false);
+								clearText(false);
+								currentBg = 1;
+								boxArtLoaded = false;
 								showSTARTborder = true;
+								settingsChanged = true;
+								bannerTextShown = false;
+								titleUpdate(dirContents[scrn][CURPOS + PAGENUM * 40].isDirectory,
+										dirContents[scrn][CURPOS + PAGENUM * 40].name, CURPOS);
+								bannerTextShown = true;
+								updateText(false);
+								snd().playSelect();
 							}
-
-							for (int i = 0; i < 2; i++) {
-								swiWaitForVBlank();
-							}
-
-							refreshGridIcons(scrn, dirContents, CURPOS1, false);
-
-							for (int i = 0; i < 6; i++) {
-								swiWaitForVBlank();
-							}
-
-							snd().playSelect();
-
-							for (int i = 0; i < 2; i++) {
-								swiWaitForVBlank();
-							}
-
-							refreshGridIcons(scrn, dirContents, CURPOS, false);
-
-							while (titleboxXpos[ms().secondaryDevice] != titleboxXdest[ms().secondaryDevice]) {
-								swiWaitForVBlank();
-							}
-							if (tc().playStopSound()) snd().playStop();
-							startBorderZoomOut = true;
 						}
-						dsiCursorMove = true;
-					} else if (ms().theme != TWLSettings::EThemeSaturn) {
+					} else {
+						int moveBy;
+						if (startTouch.px < 39)
+							moveBy = -2;
+						else if (startTouch.px < 96)
+							moveBy = -1;
+						else if (startTouch.px < 160)
+							moveBy = 0;
+						else if (startTouch.px < 217)
+							moveBy = 1;
+						else
+							moveBy = 2;
+
+						if (moveBy == 0) {
+							gameTapped = bannerTextShown && showSTARTborder;
+						} else if (ms().theme == TWLSettings::EThemeDSi) {
+							if (moveBy != -2 && moveBy != 2) {
+								moveCursor(moveBy == 1, dirContents[scrn]);
+							} else {
+								const int CURPOS1 = std::clamp(moveBy > 0 ? (CURPOS + 1) : (CURPOS - 1), 0, last_used_box);
+								CURPOS = std::clamp(CURPOS + moveBy, 0, last_used_box);
+								snd().playSelect();
+								titlewindowXdest[ms().secondaryDevice] = CURPOS * 5;
+								titleboxXdest[ms().secondaryDevice] = CURPOS * titleboxXspacing;
+								boxArtLoaded = false;
+								settingsChanged = true;
+								bannerTextShown = false;
+								touch = startTouch;
+								if (CURPOS + PAGENUM * 40 >= ((int)dirContents[scrn].size()))
+									showSTARTborder = false;
+								else
+									showSTARTborder = true;
+								for (int i = 0; i < 2; i++)
+									swiWaitForVBlank();
+								refreshGridIcons(scrn, dirContents, CURPOS1, false);
+								for (int i = 0; i < 6; i++)
+									swiWaitForVBlank();
+								snd().playSelect();
+								for (int i = 0; i < 2; i++)
+									swiWaitForVBlank();
+								refreshGridIcons(scrn, dirContents, CURPOS, false);
+								while (titleboxXpos[ms().secondaryDevice] != titleboxXdest[ms().secondaryDevice])
+									swiWaitForVBlank();
+								if (tc().playStopSound()) snd().playStop();
+								startBorderZoomOut = true;
+							}
+							dsiCursorMove = true;
+						} else if (ms().theme != TWLSettings::EThemeSaturn) {
+							CURPOS = std::clamp(CURPOS + moveBy, 0, last_used_box);
+							refreshGridIcons(scrn, dirContents, CURPOS, false);
+						}
+					}
+				} else if (ms().theme != TWLSettings::EThemeSaturn) {
 						CURPOS = std::clamp(CURPOS + moveBy, 0, last_used_box);
 
 						refreshGridIcons(scrn, dirContents, CURPOS, false);
 					}
-				} else if (ms().theme != TWLSettings::EThemeSaturn) {
+				} else if (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::ETheme3DS) {
 					draggingIcons = true;
 					int prevPos = CURPOS;
 					showSTARTborder = false;
