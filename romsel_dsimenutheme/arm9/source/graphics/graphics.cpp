@@ -1474,18 +1474,20 @@ void vBlankHandler() {
 		}
 
 		if (applaunchprep) {
+			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? 8 + (CURPOS % 3) * 88 : 96;
+			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? 22 + ((CURPOS % 6) / 3) * 80 : 84;
 			if (isDirectory[CURPOS]) {
-				glSprite(96, 87 - titleboxYmovepos, GL_FLIP_NONE, tex().folderImage());
+				glSprite(launchBoxX, launchBoxY + 3 - titleboxYmovepos, GL_FLIP_NONE, tex().folderImage());
 				if (customIcon[CURPOS])
-					drawIcon(112, 96 - titleboxYmovepos, CURPOS);
+					drawIcon(launchBoxX + 16, launchBoxY + 16 - titleboxYmovepos, CURPOS);
 			} else {
 				if (!bnrSysSettings[CURPOS]) {
-					glSprite(96, 84 - titleboxYmovepos, GL_FLIP_NONE, tex().boxfullImage());
+					glSprite(launchBoxX, launchBoxY - titleboxYmovepos, GL_FLIP_NONE, tex().boxfullImage());
 				}
 				if (bnrSysSettings[CURPOS])
-					glSprite(96, 83 - titleboxYmovepos, GL_FLIP_NONE, &tex().settingsImage()[1]);
+					glSprite(launchBoxX, launchBoxY - 1 - titleboxYmovepos, GL_FLIP_NONE, &tex().settingsImage()[1]);
 				else
-					drawIcon(112, 96 - titleboxYmovepos, CURPOS);
+					drawIcon(launchBoxX + 16, launchBoxY + 16 - titleboxYmovepos, CURPOS);
 			}
 			// Draw dots after selecting a game/app
 			dots().drawAuto();
