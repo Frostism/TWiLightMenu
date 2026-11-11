@@ -3632,14 +3632,14 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 					if (held & KEY_LEFT) {
 						if (PAGENUM > 0 || CURPOS > 1 || !backFound) {
 							if (ms().theme == TWLSettings::ETheme3DS)
-								moveGridCursorHorizontal(-1, dirContents[scrn]);
+								moveGridCursor(-1, dirContents[scrn]);
 							else
 								moveCursor(false, dirContents[scrn]);
 						}
 					} else if (held & KEY_RIGHT) {
 						if (CURPOS + (PAGENUM * 40) < (int)dirContents[scrn].size() - 1) {
 							if (ms().theme == TWLSettings::ETheme3DS)
-								moveGridCursorHorizontal(1, dirContents[scrn]);
+								moveGridCursor(1, dirContents[scrn]);
 							else
 								moveCursor(true, dirContents[scrn], dirContents[scrn].size() - 1 - PAGENUM * 40);
 						} else if (ms().theme != TWLSettings::EThemeSaturn && !edgeBumpSoundPlayed) {
