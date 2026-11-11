@@ -3598,7 +3598,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				moveGridCursor(-3, dirContents[scrn]);
 			} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_DOWN)) {
 				moveGridCursor(3, dirContents[scrn]);
-			} else if ((pressed & KEY_UP) && (PAGENUM > 0 || CURPOS > 0 || !backFound) && (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL && ms().theme != TWLSettings::ETheme3DS) && !dirInfoIniFound && (ms().sortMethod == 4) && (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))) { // Move apps (DSi theme)
+			} else if ((pressed & KEY_UP) && (PAGENUM > 0 || CURPOS > 0 || !backFound) && (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL) && !dirInfoIniFound && (ms().sortMethod == 4) && (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))) { // Move apps (DSi & 3DS themes)
 				MoveModeState mv = beginMoveMode(scrn, dirContents, /* followStylus = */ false, 0);
 
 				while (1) {
@@ -3617,11 +3617,17 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 
 					if (held & KEY_LEFT) {
 						if (PAGENUM > 0 || CURPOS > 1 || !backFound) {
-							moveCursor(false, dirContents[scrn]);
+							if (ms().theme == TWLSettings::ETheme3DS)
+								moveGridCursor(-1, dirContents[scrn]);
+							else
+								moveCursor(false, dirContents[scrn]);
 						}
 					} else if (held & KEY_RIGHT) {
 						if (CURPOS + (PAGENUM * 40) < (int)dirContents[scrn].size() - 1) {
-							moveCursor(true, dirContents[scrn], dirContents[scrn].size() - 1 - PAGENUM * 40);
+							if (ms().theme == TWLSettings::ETheme3DS)
+								moveGridCursor(1, dirContents[scrn]);
+							else
+								moveCursor(true, dirContents[scrn], dirContents[scrn].size() - 1 - PAGENUM * 40);
 						} else if (ms().theme != TWLSettings::EThemeSaturn && !edgeBumpSoundPlayed) {
 							snd().playWrong();
 							edgeBumpSoundPlayed = true;
