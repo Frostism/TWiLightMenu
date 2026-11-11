@@ -1305,7 +1305,7 @@ void vBlankHandler() {
 					// (move mode uses titleboxXspacing 76), so drop it instead.
 					// continue, not break: the DSi brace below reads the loop's
 					// final spawnedboxXpos, which is already assigned above.
-					if (i > CURPOS + maxIconNumber)
+					if (ms().theme != TWLSettings::ETheme3DS && i > CURPOS + maxIconNumber)
 						continue;
 				}
 
@@ -1386,32 +1386,37 @@ void vBlankHandler() {
 				// same 112 - 96 relationship the row above uses.
 				const int movingIconXpos = movingAppXpos + 16;
 				if (movingAppIsDir) {
-					if (ms().theme == TWLSettings::ETheme3DS)
-						glSprite(movingAppXpos, titleboxYpos - movingAppYpos, GL_FLIP_NONE, tex().folderImage());
-					else
+					if (ms().theme == TWLSettings::ETheme3DS) {
+						const int movingY = 22 + ((CURPOS % 6) / 3) * 80 - movingAppYpos;
+						glSprite(movingAppXpos, movingY, GL_FLIP_NONE, tex().folderImage());
+						if (customIcon[MOVING_APP_SLOT])
+							drawIcon(movingIconXpos, movingY + 16, -1);
+					} else {
 						glSprite(movingAppXpos, titleboxYpos - movingAppYpos + titleboxYposDropDown[movingApp % 5],
 								 GL_FLIP_NONE, tex().folderImage());
-					if (customIcon[MOVING_APP_SLOT])
-						drawIcon(movingIconXpos,
-								 (titleboxYpos + iconYposOnTitleBox) - movingAppYpos + titleboxYposDropDown[movingApp % 5],
-								 -1);
+						if (customIcon[MOVING_APP_SLOT])
+							drawIcon(movingIconXpos,
+									 (titleboxYpos + iconYposOnTitleBox) - movingAppYpos + titleboxYposDropDown[movingApp % 5],
+									 -1);
+					}
 				} else {
 					if (!bnrSysSettings[MOVING_APP_SLOT]) {
 						if (ms().theme == TWLSettings::ETheme3DS) {
-							glSprite(movingAppXpos, titleboxYpos - movingAppYpos, GL_FLIP_NONE,
-									 tex().boxfullImage());
+							const int movingY = 22 + ((CURPOS % 6) / 3) * 80 - movingAppYpos;
+							glSprite(movingAppXpos, movingY, GL_FLIP_NONE, tex().boxfullImage());
+							drawIcon(movingIconXpos, movingY + 16, -1);
 						} else {
 							glSprite(movingAppXpos,
 									 titleboxYpos - movingAppYpos + titleboxYposDropDown[movingApp % 5],
 									 GL_FLIP_NONE, &tex().boxfullImage()[0]);
+							drawIcon(movingIconXpos, (titleboxYpos + iconYposOnTitleBox) - movingAppYpos + titleboxYposDropDown[movingApp % 5], -1);
 						}
+					} else {
+						const int movingY = (ms().theme == TWLSettings::ETheme3DS)
+							? 22 + ((CURPOS % 6) / 3) * 80 - movingAppYpos
+							: (titleboxYpos - 1) - movingAppYpos + titleboxYposDropDown[movingApp % 5];
+						glSprite(movingAppXpos, movingY, GL_FLIP_NONE, &tex().settingsImage()[1]);
 					}
-					if (bnrSysSettings[MOVING_APP_SLOT])
-						glSprite(movingAppXpos,
-								 (titleboxYpos - 1) - movingAppYpos + titleboxYposDropDown[movingApp % 5],
-								 GL_FLIP_NONE, &tex().settingsImage()[1]);
-					else
-						drawIcon(movingIconXpos, (titleboxYpos + iconYposOnTitleBox) - movingAppYpos + titleboxYposDropDown[movingApp % 5], -1);
 				}
 			}
 
