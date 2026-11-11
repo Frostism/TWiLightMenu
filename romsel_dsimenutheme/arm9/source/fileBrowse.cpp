@@ -562,6 +562,14 @@ static void moveGridCursor(int offset, const std::vector<DirEntry> &entries) {
 	snd().playSelect();
 }
 
+static void moveGridCursorHorizontal(int direction, const std::vector<DirEntry> &entries) {
+	if ((direction < 0 && CURPOS % 3 == 0) || (direction > 0 && CURPOS % 3 == 2)) {
+		snd().playWrong();
+		return;
+	}
+	moveGridCursor(direction, entries);
+}
+
 // The non-blocking half of moveCursor(), for the stylus drag. moveCursor spins
 // for ~12 frames per step (8 animating titleboxXdest, then the first-move delay),
 // during which the carried box would freeze and a release would go unseen. This
@@ -3582,7 +3590,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 
 			if ((held & KEY_LEFT) || ((held & KEY_TOUCH) && touch.py > 171 && touch.px < 19 && ms().theme == TWLSettings::EThemeDSi)) { // Left or button arrow (DSi theme)
 				if (ms().theme == TWLSettings::ETheme3DS)
-					moveGridCursor(-1, dirContents[scrn]);
+					moveGridCursorHorizontal(-1, dirContents[scrn]);
 				else
 					moveCursor(false, dirContents[scrn]);
 				dsiBinariesChecked = false;
@@ -3592,7 +3600,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				infoCheckTimer = 0;
 			} else if ((held & KEY_RIGHT) || ((held & KEY_TOUCH) && touch.py > 171 && touch.px > 236 && ms().theme == TWLSettings::EThemeDSi)) { // Right or button arrow (DSi theme)
 				if (ms().theme == TWLSettings::ETheme3DS)
-					moveGridCursor(1, dirContents[scrn]);
+					moveGridCursorHorizontal(1, dirContents[scrn]);
 				else
 					moveCursor(true, dirContents[scrn]);
 				dsiBinariesChecked = false;
@@ -3624,14 +3632,14 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 					if (held & KEY_LEFT) {
 						if (PAGENUM > 0 || CURPOS > 1 || !backFound) {
 							if (ms().theme == TWLSettings::ETheme3DS)
-								moveGridCursor(-1, dirContents[scrn]);
+								moveGridCursorHorizontal(-1, dirContents[scrn]);
 							else
 								moveCursor(false, dirContents[scrn]);
 						}
 					} else if (held & KEY_RIGHT) {
 						if (CURPOS + (PAGENUM * 40) < (int)dirContents[scrn].size() - 1) {
 							if (ms().theme == TWLSettings::ETheme3DS)
-								moveGridCursor(1, dirContents[scrn]);
+								moveGridCursorHorizontal(1, dirContents[scrn]);
 							else
 								moveCursor(true, dirContents[scrn], dirContents[scrn].size() - 1 - PAGENUM * 40);
 						} else if (ms().theme != TWLSettings::EThemeSaturn && !edgeBumpSoundPlayed) {
