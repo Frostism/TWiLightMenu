@@ -3835,19 +3835,27 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 						if (col >= 0 && row >= 0) {
 							const int target = (CURPOS / 6) * 6 + row * 3 + col;
 							if (target <= last_used_box) {
-								CURPOS = target;
-								refreshGridIcons(scrn, dirContents, CURPOS, false);
-								clearText(false);
-								currentBg = 1;
-								boxArtLoaded = false;
-								showSTARTborder = true;
-								settingsChanged = true;
-								bannerTextShown = false;
-								titleUpdate(dirContents[scrn][CURPOS + PAGENUM * 40].isDirectory,
-										dirContents[scrn][CURPOS + PAGENUM * 40].name, CURPOS);
-								bannerTextShown = true;
-								updateText(false);
-								snd().playSelect();
+								if (target == CURPOS) {
+									gameTapped = bannerTextShown && showSTARTborder;
+								} else {
+									CURPOS = target;
+									refreshGridIcons(scrn, dirContents, CURPOS, false);
+									clearText(false);
+									boxArtLoaded = false;
+									showSTARTborder = true;
+									settingsChanged = true;
+									bannerTextShown = false;
+									if (CURPOS + PAGENUM * 40 < (int)dirContents[scrn].size()) {
+										currentBg = 1;
+										titleUpdate(dirContents[scrn][CURPOS + PAGENUM * 40].isDirectory,
+												dirContents[scrn][CURPOS + PAGENUM * 40].name, CURPOS);
+										bannerTextShown = true;
+									} else {
+										currentBg = 0;
+									}
+									updateText(false);
+									snd().playSelect();
+								}
 							}
 						}
 					} else {
