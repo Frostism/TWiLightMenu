@@ -3642,6 +3642,8 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 						moveGridCursor(-3, dirContents[scrn]);
 					} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_DOWN)) {
 						moveGridCursor(3, dirContents[scrn]);
+					} else if (ms().theme == TWLSettings::ETheme3DS && (pressed & KEY_B)) {
+						break;
 					} else if (pressed & KEY_DOWN) {
 						break;
 					} else if (pressed & KEY_L) {
@@ -3811,6 +3813,8 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 								want = std::clamp(insertSlotAtScreenX(touch.px), lo, hi);
 							}
 						}
+						if (ms().theme == TWLSettings::ETheme3DS)
+							movingAppXpos = 8 + (want % 3) * 88;
 
 						if (scrollDelay > 0)
 							scrollDelay--;
