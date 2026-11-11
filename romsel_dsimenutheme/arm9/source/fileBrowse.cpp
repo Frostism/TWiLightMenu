@@ -3836,25 +3836,49 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 							edgeDwell = 0;
 						} else if (settled && want == CURPOS
 								&& (touch.px <= MOVE_EDGE_PX || touch.px >= SCREEN_WIDTH - MOVE_EDGE_PX)) {
-							// Pinned against the end of the page with the stylus held in the
-							// hard edge zone: flip. The dwell is long because a flip costs a
-							// fade, a directory re-read and 40 banner loads.
 							const bool forward = (touch.px >= SCREEN_WIDTH - MOVE_EDGE_PX);
-							const bool pinned = forward ? (CURPOS >= hi) : (CURPOS <= lo);
-							const bool canFlip = forward ? (file_count > 40 + PAGENUM * 40) : (PAGENUM > 0);
-							if (pinned && canFlip && ++edgeDwell >= MOVE_PAGE_DWELL) {
-								edgeDwell = 0;
-								moveModePageFlip(forward, /* landAtEnd = */ !forward, scrn, dirContents,
-										 extensionList, mv);
-								if (movingApp == -1) // The entry went missing across the flip
+							if (ms().theme == TWLSettings::ETheme3DS) {
+								const int nextGridSlot = forward
+										? std::min((CURPOS / 6 + 1) * 6, hi)
+										: std::max((CURPOS / 6) * 6 - 1, lo);
+								if (nextGridSlot != CURPOS && ++edgeDwell >= 15) {
+									edgeDwell = 0;
+									moveGridCursor(nextGridSlot - CURPOS, dirContents[scrn]);
+									scrollDelay = MOVE_SCROLL_DELAY;
+								} else if (nextGridSlot == CURPOS) {
+									const bool canFlip = forward ? (file_count > 40 + PAGENUM * 40) : (PAGENUM > 0);
+									if (canFlip && ++edgeDwell >= MOVE_PAGE_DWELL) {
+										edgeDwell = 0;
+										moveModePageFlip(forward, /* landAtEnd = */ !forward, scrn, dirContents,
+												 extensionList, mv);
+										if (movingApp == -1)
+											break;
+										scanKeys();
+										if (!(keysHeld() & KEY_TOUCH))
+											break;
+										touchRead(&touch);
+										grabY = touch.py;
+										scrollDelay = MOVE_SCROLL_DELAY;
+									}
+								}
+							} else {
+								const bool pinned = forward ? (CURPOS >= hi) : (CURPOS <= lo);
+								const bool canFlip = forward ? (file_count > 40 + PAGENUM * 40) : (PAGENUM > 0);
+								if (pinned && canFlip && ++edgeDwell >= MOVE_PAGE_DWELL) {
+									edgeDwell = 0;
+									moveModePageFlip(forward, /* landAtEnd = */ !forward, scrn, dirContents,
+											 extensionList, mv);
+									if (movingApp == -1)
 									break;
-								scanKeys();
-								if (!(keysHeld() & KEY_TOUCH))
+									scanKeys();
+									if (!(keysHeld() & KEY_TOUCH))
 									break;
-								touchRead(&touch);
-								grabY = touch.py; // Re-anchor the y grab across the load
-								scrollDelay = MOVE_SCROLL_DELAY;
+									touchRead(&touch);
+									grabY = touch.py;
+									scrollDelay = MOVE_SCROLL_DELAY;
+								}
 							}
+
 						} else {
 							edgeDwell = 0;
 						}
