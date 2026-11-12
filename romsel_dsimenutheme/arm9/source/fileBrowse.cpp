@@ -3602,7 +3602,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 
 			if (ms().theme == TWLSettings::ETheme3DS && (pressed & KEY_TOUCH)
 					&& touch.py >= 2 && touch.py <= 22 && touch.px >= 208) {
-				GridDensity = (touch.px < 231) ? 0 : 1;
+				GridDensity = (touch.px < 231) ? std::max(GridDensity - 1, 0) : std::min(GridDensity + 1, 2);
 					if (GridDensity == 0) {
 						CURPOS = std::clamp(CURPOS, 0, last_used_box);
 						currentBg = 1;
@@ -3630,11 +3630,11 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				dsiWareRAMLimitMsgPrepped = false;
 				infoCheckTimer = 0;
 			} else if ((held & KEY_RIGHT) || ((held & KEY_TOUCH) && ((touch.py > 171 && touch.px > 236 && ms().theme == TWLSettings::EThemeDSi)
-					|| (touch.py >= 86 && touch.py <= 106 && touch.px > 238 && ms().theme == TWLSettings::ETheme3DS)))) { // Right or button arrow (DSi theme)
+					|| (touch.py >= 88 && touch.py <= 100 && touch.px > 238 && ms().theme == TWLSettings::ETheme3DS)))) { // Right or button arrow (DSi theme)
 				if (ms().theme == TWLSettings::ETheme3DS) {
 					if (gridMoveCooldown == 0) {
 						moveGridCursorHorizontal(ThreeDSCarousel() ? 1 : 2, dirContents[scrn]);
-						gridMoveCooldown = 6;
+						gridMoveCooldown = 12;
 					}
 				}
 				else
@@ -3645,9 +3645,9 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				dsiWareRAMLimitMsgPrepped = false;
 				infoCheckTimer = 0;
 			} else if (ms().theme == TWLSettings::ETheme3DS && !ThreeDSCarousel() && (held & KEY_UP)) {
-				if (CURPOS % 2 == 1) moveGridCursor(-1, dirContents[scrn]);
+				if (CURPOS % 2 == 1) moveGridCursorHorizontal(ThreeDSCarousel() ? -1 : -2, dirContents[scrn]);
 			} else if (ms().theme == TWLSettings::ETheme3DS && !ThreeDSCarousel() && (held & KEY_DOWN)) {
-				if (CURPOS % 2 == 0) moveGridCursor(1, dirContents[scrn]);
+				if (CURPOS % 2 == 0) moveGridCursorHorizontal(ThreeDSCarousel() ? 1 : 2, dirContents[scrn]);
 			} else if ((pressed & KEY_UP) && (PAGENUM > 0 || CURPOS > 0 || !backFound) && (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL) && !dirInfoIniFound && (ms().sortMethod == 4) && (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))) { // Move apps (DSi & 3DS themes)
 				MoveModeState mv = beginMoveMode(scrn, dirContents, /* followStylus = */ false, 0);
 
