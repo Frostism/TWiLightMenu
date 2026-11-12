@@ -231,16 +231,22 @@ void convertIconPalette(sNDSBannerExt* ndsBanner) {
 	}
 }
 
-void drawIcon(int Xpos, int Ypos, int num) {
-	if (num == -1) { // Moving app icon
-		glSprite(Xpos, Ypos, bannerFlip[40], &getIcon(ICON_MOVING_BANK)[bnriconframenumY[40]]);
+void drawIcon(int Xpos, int Ypos, int num, s32 scale) {
+	if (num == -1) {
+		if (scale == (1 << 12))
+			glSprite(Xpos, Ypos, bannerFlip[40], &getIcon(ICON_MOVING_BANK)[bnriconframenumY[40]]);
+		else
+			glSpriteScale(Xpos, Ypos, scale, bannerFlip[40], &getIcon(ICON_MOVING_BANK)[bnriconframenumY[40]]);
 		if (bnriconPalLine[40] != bnriconPalLoaded[40]) {
-			bnriconPalLoaded[40] = -1; // defer loading the palette
+			bnriconPalLoaded[40] = -1;
 		}
 	} else {
-		glSprite(Xpos, Ypos, bannerFlip[num], &getIcon(ICON_GRID_BANK(num))[bnriconframenumY[num]]);
+		if (scale == (1 << 12))
+			glSprite(Xpos, Ypos, bannerFlip[num], &getIcon(ICON_GRID_BANK(num))[bnriconframenumY[num]]);
+		else
+			glSpriteScale(Xpos, Ypos, scale, bannerFlip[num], &getIcon(ICON_GRID_BANK(num))[bnriconframenumY[num]]);
 		if (bnriconPalLine[num] != bnriconPalLoaded[num]) {
-			bnriconPalLoaded[num] = -1; // defer loading the palette
+			bnriconPalLoaded[num] = -1;
 		}
 	}
 }
