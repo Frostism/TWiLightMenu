@@ -1351,7 +1351,7 @@ void vBlankHandler() {
 					boxDrawX = ThreeDSCarousel() ? 32 + cell * 80
 							: (GridDensity == 2 ? 8 + gridColumn * 64 : 8 + gridColumn * 88);
 					iconDrawX = boxDrawX + (GridDensity == 2 ? 12 : 16);
-					boxDrawY = ThreeDSCarousel() ? 64 : (GridDensity == 2 ? 30 + gridRow * 72 : 22 + gridRow * 80);
+					boxDrawY = ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 30 + gridRow * 72 : 22 + gridRow * 80);
 					iconDrawY = boxDrawY + (GridDensity == 2 ? 12 : 16);
 				}
 				if (boxDrawX <= -64 || boxDrawX >= SCREEN_WIDTH)
@@ -1501,19 +1501,19 @@ void vBlankHandler() {
 			glSprite(topIconXpos, 1, GL_FLIP_NONE, &tex().smallCartImage()[4]); // Manual
 
 			// 3DS HOME Menu display-size controls.
-			glBoxFilled(208, 170, 230, 190, RGB15(8, 8, 8));
-			glBoxFilled(232, 170, 254, 190, RGB15(8, 8, 8));
-			glBox(208, 170, 230, 190, RGB15(24, 24, 24));
-			glBox(232, 170, 254, 190, RGB15(24, 24, 24));
+			glBoxFilled(208, 1, 230, 21, RGB15(8, 8, 8));
+			glBoxFilled(232, 1, 254, 21, RGB15(8, 8, 8));
+			glBox(208, 1, 230, 21, RGB15(24, 24, 24));
+			glBox(232, 1, 254, 21, RGB15(24, 24, 24));
 			if (GridDensity == 0)
-				glBoxFilled(208, 170, 230, 190, RGB15(16, 16, 16));
+				glBoxFilled(208, 1, 230, 21, RGB15(16, 16, 16));
 			else if (GridDensity == 2)
-				glBoxFilled(232, 170, 254, 190, RGB15(16, 16, 16));
-			glBoxFilled(215, 176, 223, 184, RGB15(31, 31, 31));
-			glBoxFilled(239, 176, 243, 180, RGB15(31, 31, 31));
-			glBoxFilled(245, 176, 249, 180, RGB15(31, 31, 31));
-			glBoxFilled(239, 182, 243, 186, RGB15(31, 31, 31));
-			glBoxFilled(245, 182, 249, 186, RGB15(31, 31, 31));
+				glBoxFilled(232, 1, 254, 21, RGB15(16, 16, 16));
+			glBoxFilled(215, 7, 223, 15, RGB15(31, 31, 31));
+			glBoxFilled(239, 7, 243, 11, RGB15(31, 31, 31));
+			glBoxFilled(245, 7, 249, 11, RGB15(31, 31, 31));
+			glBoxFilled(239, 13, 243, 17, RGB15(31, 31, 31));
+			glBoxFilled(245, 13, 249, 17, RGB15(31, 31, 31));
 
 			const int arrowY = ThreeDSCarousel() ? 146 : 96;
 			const int gridStart = (CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount();
@@ -1537,7 +1537,7 @@ void vBlankHandler() {
 			const int launchColumn = launchCell / 2;
 			const int launchRow = launchCell % 2;
 			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 8 + launchColumn * 64 : 8 + launchColumn * 88)) : 96;
-			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : (GridDensity == 2 ? 30 + launchRow * 72 : 22 + launchRow * 80)) : 84;
+			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 30 + launchRow * 72 : 22 + launchRow * 80)) : 84;
 			const int launchIconInset = (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? 12 : 16;
 			const s32 launchScale = (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? 3072 : (1 << 12);
 			if (isDirectory[CURPOS]) {
@@ -1571,7 +1571,7 @@ void vBlankHandler() {
 			const int selectedColumn = selectedCell / 2;
 			const int selectedRow = selectedCell % 2;
 			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 8 + selectedColumn * 64 : 8 + selectedColumn * 88)) : 96;
-			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : (GridDensity == 2 ? 30 + selectedRow * 72 : 22 + selectedRow * 80)) : tc().startBorderRenderY();
+			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 30 + selectedRow * 72 : 22 + selectedRow * 80)) : tc().startBorderRenderY();
 			const s32 borderScale = (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? 3072 : (1 << 12);
 			const int borderWidth = (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? tc().startBorderSpriteW() * 3 / 4 : tc().startBorderSpriteW();
 			if (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) {
