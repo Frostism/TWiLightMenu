@@ -3046,7 +3046,7 @@ static MoveModeState beginMoveMode(SwitchState scrn, const std::vector<std::vect
 	}
 	movingAppXpos = movingAppXmax;
 	if (ms().theme == TWLSettings::ETheme3DS)
-		movingAppXpos = 8 + (CURPOS % 3) * 88;
+		movingAppXpos = 8 + (CURPOS / 2 % 3) * 88;
 
 	showMovingArrow = true;
 
