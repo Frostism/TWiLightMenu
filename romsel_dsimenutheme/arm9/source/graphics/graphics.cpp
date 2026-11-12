@@ -57,6 +57,8 @@
 
 #include "bubbles.h"	// For HBL theme
 
+extern int last_used_box;
+
 #define CONSOLE_SCREEN_WIDTH 32
 #define CONSOLE_SCREEN_HEIGHT 24
 
