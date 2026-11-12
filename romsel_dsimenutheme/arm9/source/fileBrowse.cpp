@@ -3601,7 +3601,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 			buttonArrowTouched[1] = ((keysHeld() & KEY_TOUCH) && touch.py > 171 && touch.px > 236);
 
 			if (ms().theme == TWLSettings::ETheme3DS && (pressed & KEY_TOUCH)
-					&& touch.py >= 174 && touch.py <= 191 && touch.px >= 208) {
+					&& touch.py >= 2 && touch.py <= 22 && touch.px >= 208) {
 				GridDensity = (touch.px < 231) ? 0 : 1;
 					if (GridDensity == 0) {
 						CURPOS = std::clamp(CURPOS, 0, last_used_box);
