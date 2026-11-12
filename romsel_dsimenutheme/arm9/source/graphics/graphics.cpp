@@ -216,8 +216,8 @@ u16* colorTable = NULL;
 int bubbleYpos = 80;
 int bubbleXpos = 122;
 
-int ThreeDSGridColumns() { return GridDensity == 0 ? 3 : 3; }
-int ThreeDSGridVisibleCount() { return GridDensity == 0 ? 3 : 6; }
+int ThreeDSGridColumns() { return GridDensity == 2 ? 4 : 3; }
+int ThreeDSGridVisibleCount() { return ThreeDSCarousel() ? 3 : ThreeDSGridColumns() * 2; }
 bool ThreeDSCarousel() { return GridDensity == 0; }
 
 void vramcpy_ui(void *dest, const void *src, int size) {
@@ -1102,7 +1102,7 @@ void vBlankHandler() {
 			if (bnriconisDSi[i] && playBannerSequence(i) && !updateFrame) {
 				updateFrame = (displayGameIcons && (ms().theme != TWLSettings::EThemeSaturn))
 					? (ms().theme == TWLSettings::ETheme3DS
-						? (i >= (CURPOS / 6) * 6 && i < (CURPOS / 6) * 6 + 6)
+						? (i >= (CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount() && i < (CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount() + ThreeDSGridVisibleCount())
 						: ((i >= CURPOS-ICON_GRID_MAX_OFFSET && i <= CURPOS+ICON_GRID_MAX_OFFSET) || i == 40))
 					: (i == CURPOS);
 			}
@@ -1262,12 +1262,13 @@ void vBlankHandler() {
 			static_assert(2 * ICON_GRID_MAX_OFFSET + 1 <= ICON_GRID_BANKS,
 					  "icon grid draws more boxes than it has texture banks");
 			int maxIconNumber = (ms().theme == TWLSettings::EThemeSaturn ? 0 : ICON_GRID_MAX_OFFSET);
-			int gridStart = (CURPOS / 6) * 6;
+			const int gridCount = ThreeDSGridVisibleCount();
+			int gridStart = (CURPOS / gridCount) * gridCount;
 			int firstIcon = (ms().theme == TWLSettings::ETheme3DS)
 					? (ThreeDSCarousel() ? std::max(CURPOS - 1, 0) : gridStart)
 					: std::max(CURPOS - maxIconNumber, 0);
 			int lastIcon = (ms().theme == TWLSettings::ETheme3DS)
-					? (ThreeDSCarousel() ? std::min(CURPOS + 1, 39) : std::min(gridStart + 5, 39))
+					? (ThreeDSCarousel() ? std::min(CURPOS + 1, 39) : std::min(gridStart + gridCount - 1, 39))
 					: std::min(CURPOS + maxIconNumber, 39);
 			for (int pos = firstIcon; pos <= lastIcon; pos++) {
 				int i = pos;
@@ -1331,9 +1332,10 @@ void vBlankHandler() {
 				int iconDrawY = boxDrawY + iconYposOnTitleBox;
 				if (ms().theme == TWLSettings::ETheme3DS) {
 					const int cell = ThreeDSCarousel() ? pos - CURPOS + 1 : pos - gridStart;
-					boxDrawX = ThreeDSCarousel() ? 32 + cell * 80 : 8 + (cell % 3) * 88;
+					boxDrawX = ThreeDSCarousel() ? 32 + cell * 80
+							: (GridDensity == 2 ? (cell % 4) * 64 : 8 + (cell % 3) * 88);
 					iconDrawX = boxDrawX + 16;
-					boxDrawY = ThreeDSCarousel() ? 64 : 22 + (cell / 3) * 80;
+					boxDrawY = ThreeDSCarousel() ? 64 : 22 + (cell / ThreeDSGridColumns()) * 80;
 					iconDrawY = boxDrawY + 16;
 				}
 				if (boxDrawX <= -64 || boxDrawX >= SCREEN_WIDTH)
@@ -1490,7 +1492,7 @@ void vBlankHandler() {
 			glLine(243, 175, 243, 185, RGB15(31, 31, 31));
 			if (GridDensity == 0)
 				glBoxFilled(208, 170, 230, 190, RGB15(16, 16, 16));
-			else
+			else if (GridDensity == 2)
 				glBoxFilled(232, 170, 254, 190, RGB15(16, 16, 16));
 			glLine(214, 180, 224, 180, RGB15(31, 31, 31));
 			glLine(238, 180, 248, 180, RGB15(31, 31, 31));
@@ -1511,8 +1513,9 @@ void vBlankHandler() {
 		}
 
 		if (applaunchprep) {
-			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : 8 + (CURPOS % 3) * 88) : 96;
-			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + ((CURPOS % 6) / 3) * 80) : 84;
+			const int launchCell = CURPOS % ThreeDSGridVisibleCount();
+			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? (launchCell % 4) * 64 : 8 + (launchCell % 3) * 88)) : 96;
+			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + (launchCell / ThreeDSGridColumns()) * 80) : 84;
 			if (isDirectory[CURPOS]) {
 				glSprite(launchBoxX, launchBoxY + 3 - titleboxYmovepos, GL_FLIP_NONE, tex().folderImage());
 				if (customIcon[CURPOS])
@@ -1530,8 +1533,9 @@ void vBlankHandler() {
 			dots().drawAuto();
 		}
 		if (showSTARTborder && displayGameIcons && (ms().theme < 4)) {
-			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : 8 + (CURPOS % 3) * 88) : 96;
-			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + ((CURPOS % 6) / 3) * 80) : tc().startBorderRenderY();
+			const int selectedCell = CURPOS % ThreeDSGridVisibleCount();
+			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? (selectedCell % 4) * 64 : 8 + (selectedCell % 3) * 88)) : 96;
+			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + (selectedCell / ThreeDSGridColumns()) * 80) : tc().startBorderRenderY();
 			glSprite(startBorderX, startBorderY, GL_FLIP_NONE,
 				 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
 							(tc().startBorderSpriteH() - 1)]);
