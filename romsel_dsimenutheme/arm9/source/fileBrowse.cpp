@@ -2978,7 +2978,8 @@ static constexpr int MOVE_PAGE_DWELL = 45;	// frames pinned at an edge before it
 struct MoveModeState {
 	int orgPage;
 	int orgCursorPosition;
-	DirEntry entry;	// copy of the carried entry, to re-find it after a page flip
+	DirEntry entry;
+	int gridDensity;
 };
 
 // Inverse of the move-mode row layout: display slot p is drawn at
@@ -3011,6 +3012,8 @@ static int maxInsertSlot(const std::vector<DirEntry> &entries) {
 // stylus as it rises, so a dragged app ends up under the pen rather than on the gap.
 static MoveModeState beginMoveMode(SwitchState scrn, const std::vector<std::vector<DirEntry>> &dirContents,
 					bool followStylus, int stylusPx) {
+	const int gridDensity = GridDensity;
+	GridDensity = 1;
 	bannerTextShown = false; // Redraw the title when done
 	showSTARTborder = false;
 	currentBg = 2;
@@ -3046,7 +3049,7 @@ static MoveModeState beginMoveMode(SwitchState scrn, const std::vector<std::vect
 
 	showMovingArrow = true;
 
-	return {PAGENUM, CURPOS, dirContents[scrn][movingApp]};
+	return {PAGENUM, CURPOS, dirContents[scrn][movingApp], gridDensity};
 }
 
 // Flip a page while still carrying an app. landAtEnd puts the cursor on the last
@@ -3164,6 +3167,8 @@ static void endMoveMode(SwitchState scrn, std::vector<std::vector<DirEntry>> &di
 	movingApp = -1;
 	titleboxXspacing = 58;
 	titleboxXdest[ms().secondaryDevice] = titleboxXpos[ms().secondaryDevice] = CURPOS * titleboxXspacing;
+	GridDensity = mv.gridDensity;
+	refreshGridIcons(scrn, dirContents, CURPOS, false);
 }
 
 static bool previousPage(SwitchState scrn, vector<vector<DirEntry>> dirContents) {
@@ -3776,13 +3781,16 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 
 				// Same gate as the keypad move gesture, plus: only the box under the
 				// cursor can be picked up, and it has to be a real entry.
-				const int touchGridCol = (startTouch.px >= 8 && startTouch.px < 72) ? 0
+				const int touchGridCol = (GridDensity == 2)
+						? std::clamp(startTouch.px / 64, 0, 3)
+						: (startTouch.px >= 8 && startTouch.px < 72) ? 0
 						: (startTouch.px >= 96 && startTouch.px < 160) ? 1
 						: (startTouch.px >= 184 && startTouch.px < 248) ? 2 : -1;
 				const int touchGridRow = (startTouch.py >= 22 && startTouch.py < 86) ? 0
 						: (startTouch.py >= 102 && startTouch.py < 166) ? 1 : -1;
-				const bool touchOnGridTile = touchGridCol >= 0 && touchGridRow >= 0
-						&& CURPOS % 6 == touchGridRow * 3 + touchGridCol;
+				const bool touchOnGridTile = touchGridCol >= 0 && touchGridCol < ThreeDSGridColumns()
+						&& touchGridRow >= 0
+						&& CURPOS % ThreeDSGridVisibleCount() == touchGridRow * ThreeDSGridColumns() + touchGridCol;
 				const bool canLift = !dirInfoIniFound
 						&& ms().sortMethod == TWLSettings::ESortCustom
 						&& ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL
@@ -3877,8 +3885,8 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 							const bool forward = (touch.px >= SCREEN_WIDTH - MOVE_EDGE_PX);
 							if (ms().theme == TWLSettings::ETheme3DS) {
 								const int nextGridSlot = forward
-										? std::min((CURPOS / 6 + 1) * 6, hi)
-										: std::max((CURPOS / 6) * 6 - 1, lo);
+										? std::min((CURPOS / ThreeDSGridVisibleCount() + 1) * ThreeDSGridVisibleCount(), hi)
+										: std::max((CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount() - 1, lo);
 								if (nextGridSlot != CURPOS && ++edgeDwell >= 15) {
 									edgeDwell = 0;
 									moveGridCursor(nextGridSlot - CURPOS, dirContents[scrn]);
@@ -3927,13 +3935,15 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 					endMoveMode(scrn, dirContents, mv);
 				} else if (tapped) {
 					if (ms().theme == TWLSettings::ETheme3DS) {
-						const int col = (startTouch.px >= 8 && startTouch.px < 72) ? 0
+						const int col = (GridDensity == 2) ? std::clamp(startTouch.px / 64, 0, 3)
+							: (startTouch.px >= 8 && startTouch.px < 72) ? 0
 							: (startTouch.px >= 96 && startTouch.px < 160) ? 1
 							: (startTouch.px >= 184 && startTouch.px < 248) ? 2 : -1;
 						const int row = (startTouch.py >= 22 && startTouch.py < 86) ? 0
 							: (startTouch.py >= 102 && startTouch.py < 166) ? 1 : -1;
-						if (col >= 0 && row >= 0) {
-							const int target = (CURPOS / 6) * 6 + row * 3 + col;
+						if (col >= 0 && col < ThreeDSGridColumns() && row >= 0) {
+							const int target = (CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount()
+									+ row * ThreeDSGridColumns() + col;
 							if (target <= last_used_box) {
 								if (target == CURPOS) {
 									gameTapped = bannerTextShown && showSTARTborder;
