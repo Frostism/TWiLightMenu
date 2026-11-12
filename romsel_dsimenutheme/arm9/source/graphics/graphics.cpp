@@ -334,10 +334,7 @@ void bottomBgRefresh() { bottomBgLoad(currentBg, false); }
 
 void drawBubble(const glImage *images) {
 	if (ms().theme == TWLSettings::ETheme3DS && ThreeDSCarousel()) {
-		glTriangleFilled(tc().bubbleTipRenderX(), tc().bubbleTipRenderY(),
-				tc().bubbleTipRenderX() + 10, tc().bubbleTipRenderY(),
-				tc().bubbleTipRenderX() + 5, tc().bubbleTipRenderY() + 8,
-				RGB15(31, 31, 31));
+		glSprite(bubbleXpos, bubbleYpos, GL_FLIP_NONE, &images[0]);
 	} else {
 		glSprite(bubbleXpos, bubbleYpos, GL_FLIP_NONE, &images[0]);
 	}
@@ -1348,7 +1345,7 @@ void vBlankHandler() {
 					const int cell = ThreeDSCarousel() ? pos - CURPOS + 1 : pos - gridStart;
 					const int gridColumn = cell / 2;
 					const int gridRow = cell % 2;
-					boxDrawX = ThreeDSCarousel() ? 32 + cell * 80
+					boxDrawX = ThreeDSCarousel() ? 16 + cell * 80
 							: (GridDensity == 2 ? 8 + gridColumn * 64 : 8 + gridColumn * 88);
 					iconDrawX = boxDrawX + (GridDensity == 2 ? 12 : 16);
 					boxDrawY = ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 30 + gridRow * 72 : 22 + gridRow * 80);
@@ -1536,7 +1533,7 @@ void vBlankHandler() {
 			const int launchCell = CURPOS % ThreeDSGridVisibleCount();
 			const int launchColumn = launchCell / 2;
 			const int launchRow = launchCell % 2;
-			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 8 + launchColumn * 64 : 8 + launchColumn * 88)) : 96;
+			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 96 : (GridDensity == 2 ? 8 + launchColumn * 64 : 8 + launchColumn * 88)) : 96;
 			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 30 + launchRow * 72 : 22 + launchRow * 80)) : 84;
 			const int launchIconInset = (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? 12 : 16;
 			const s32 launchScale = (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? 3072 : (1 << 12);
@@ -1618,7 +1615,7 @@ void vBlankHandler() {
 
 		// Refresh the background layer.
 		if (currentBg == 1 && ms().theme != TWLSettings::EThemeSaturn
-				&& ms().theme != TWLSettings::EThemeHBL && ms().theme != TWLSettings::ETheme3DS)
+				&& ms().theme != TWLSettings::EThemeHBL && (ms().theme != TWLSettings::ETheme3DS || ThreeDSCarousel()))
 			drawBubble(tex().bubbleImage());
 		if (showSTARTborder && displayGameIcons && ms().theme == TWLSettings::EThemeDSi) {
 			glSprite(96, tc().startTextRenderY(), GL_FLIP_NONE, &tex().startImage()[ms().getGameLanguage()]);
