@@ -6,7 +6,7 @@
 // Half-width of the icon grid's draw window, in boxes either side of the
 // cursor. The draw loop in graphics.cpp samples list entries
 // [CURPOS - ICON_GRID_MAX_OFFSET, CURPOS + ICON_GRID_MAX_OFFSET].
-#define ICON_GRID_MAX_OFFSET 3
+#define ICON_GRID_MAX_OFFSET 4
 
 // One texture bank per box the grid can draw in a single frame. This MUST stay
 // >= the width of that window, or two entries drawn in the same frame alias
