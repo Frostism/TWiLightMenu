@@ -1530,8 +1530,8 @@ void vBlankHandler() {
 			const int launchRow = launchCell % 2;
 			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 8 + launchColumn * 64 : 8 + launchColumn * 88)) : 96;
 			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : (GridDensity == 2 ? 30 + launchRow * 72 : 22 + launchRow * 80)) : 84;
-			const int launchIconInset = GridDensity == 2 ? 12 : 16;
-			const s32 launchScale = GridDensity == 2 ? 3072 : (1 << 12);
+			const int launchIconInset = (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? 12 : 16;
+			const s32 launchScale = (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? 3072 : (1 << 12);
 			if (isDirectory[CURPOS]) {
 				if (GridDensity == 2)
 					glSpriteScale(launchBoxX, launchBoxY + 3 - titleboxYmovepos, launchScale, GL_FLIP_NONE, tex().folderImage());
@@ -1564,9 +1564,9 @@ void vBlankHandler() {
 			const int selectedRow = selectedCell % 2;
 			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 8 + selectedColumn * 64 : 8 + selectedColumn * 88)) : 96;
 			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : (GridDensity == 2 ? 30 + selectedRow * 72 : 22 + selectedRow * 80)) : tc().startBorderRenderY();
-			const s32 borderScale = GridDensity == 2 ? 3072 : (1 << 12);
-			const int borderWidth = GridDensity == 2 ? tc().startBorderSpriteW() * 3 / 4 : tc().startBorderSpriteW();
-			if (GridDensity == 2) {
+			const s32 borderScale = (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? 3072 : (1 << 12);
+			const int borderWidth = (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? tc().startBorderSpriteW() * 3 / 4 : tc().startBorderSpriteW();
+			if (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) {
 				glSpriteScale(startBorderX, startBorderY, borderScale, GL_FLIP_NONE,
 					 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
 							(tc().startBorderSpriteH() - 1)]);
@@ -1582,7 +1582,7 @@ void vBlankHandler() {
 							(tc().startBorderSpriteH() - 1)]);
 			}
 			if (bnrWirelessIcon[CURPOS] > 0) {
-				if (GridDensity == 2)
+				if (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2)
 					glSpriteScale(startBorderX, startBorderY, borderScale, GL_FLIP_NONE,
 							&tex().wirelessIcons()[(bnrWirelessIcon[CURPOS] - 1) & 31]);
 				else
