@@ -1481,20 +1481,20 @@ void vBlankHandler() {
 			glSprite(topIconXpos, 1, GL_FLIP_NONE, &tex().smallCartImage()[4]); // Manual
 
 			// 3DS HOME Menu display-size controls.
-			glBoxFilled(208, 2, 230, 22, RGB15(8, 8, 8));
-			glBoxFilled(232, 2, 254, 22, RGB15(8, 8, 8));
-			glBox(208, 2, 230, 22, RGB15(24, 24, 24));
-			glBox(232, 2, 254, 22, RGB15(24, 24, 24));
-			glLine(214, 12, 224, 12, RGB15(31, 31, 31));
-			glLine(238, 12, 248, 12, RGB15(31, 31, 31));
-			glLine(243, 7, 243, 17, RGB15(31, 31, 31));
+			glBoxFilled(208, 170, 230, 190, RGB15(8, 8, 8));
+			glBoxFilled(232, 170, 254, 190, RGB15(8, 8, 8));
+			glBox(208, 170, 230, 190, RGB15(24, 24, 24));
+			glBox(232, 170, 254, 190, RGB15(24, 24, 24));
+			glLine(214, 180, 224, 180, RGB15(31, 31, 31));
+			glLine(238, 180, 248, 180, RGB15(31, 31, 31));
+			glLine(243, 175, 243, 185, RGB15(31, 31, 31));
 			if (GridDensity == 0)
-				glBoxFilled(208, 2, 230, 22, RGB15(16, 16, 16));
+				glBoxFilled(208, 170, 230, 190, RGB15(16, 16, 16));
 			else
-				glBoxFilled(232, 2, 254, 22, RGB15(16, 16, 16));
-			glLine(214, 12, 224, 12, RGB15(31, 31, 31));
-			glLine(238, 12, 248, 12, RGB15(31, 31, 31));
-			glLine(243, 7, 243, 17, RGB15(31, 31, 31));
+				glBoxFilled(232, 170, 254, 190, RGB15(16, 16, 16));
+			glLine(214, 180, 224, 180, RGB15(31, 31, 31));
+			glLine(238, 180, 248, 180, RGB15(31, 31, 31));
+			glLine(243, 175, 243, 185, RGB15(31, 31, 31));
 
 			if (CURPOS > 0) {
 				glTriangleFilled(4, 96, 14, 86, 14, 106, RGB15(31, 31, 31));
