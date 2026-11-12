@@ -1424,7 +1424,7 @@ void vBlankHandler() {
 				} else {
 					if (!bnrSysSettings[MOVING_APP_SLOT]) {
 						if (ms().theme == TWLSettings::ETheme3DS) {
-							const int movingY = 22 + ((CURPOS % 6) / 3) * 80 - movingAppYpos;
+							const int movingY = 22 + (CURPOS % 2) * 80 - movingAppYpos;
 							glSprite(movingAppXpos, movingY, GL_FLIP_NONE, tex().boxfullImage());
 							drawIcon(movingIconXpos, movingY + 16, -1);
 						} else {
