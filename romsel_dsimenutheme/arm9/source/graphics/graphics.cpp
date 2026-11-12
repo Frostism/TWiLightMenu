@@ -1341,10 +1341,12 @@ void vBlankHandler() {
 				int iconDrawY = boxDrawY + iconYposOnTitleBox;
 				if (ms().theme == TWLSettings::ETheme3DS) {
 					const int cell = ThreeDSCarousel() ? pos - CURPOS + 1 : pos - gridStart;
+					const int gridColumn = cell / 2;
+					const int gridRow = cell % 2;
 					boxDrawX = ThreeDSCarousel() ? 32 + cell * 80
-							: (GridDensity == 2 ? (cell % 4) * 64 : 8 + (cell % 3) * 88);
+							: (GridDensity == 2 ? gridColumn * 64 : 8 + gridColumn * 88);
 					iconDrawX = boxDrawX + 16;
-					boxDrawY = ThreeDSCarousel() ? 64 : 22 + (cell / ThreeDSGridColumns()) * 80;
+					boxDrawY = ThreeDSCarousel() ? 64 : 22 + gridRow * 80;
 					iconDrawY = boxDrawY + 16;
 				}
 				if (boxDrawX <= -64 || boxDrawX >= SCREEN_WIDTH)
@@ -1407,7 +1409,7 @@ void vBlankHandler() {
 				const int movingIconXpos = movingAppXpos + 16;
 				if (movingAppIsDir) {
 					if (ms().theme == TWLSettings::ETheme3DS) {
-						const int movingY = 22 + ((CURPOS % 6) / 3) * 80 - movingAppYpos;
+						const int movingY = 22 + (CURPOS % 2) * 80 - movingAppYpos;
 						glSprite(movingAppXpos, movingY, GL_FLIP_NONE, tex().folderImage());
 						if (customIcon[MOVING_APP_SLOT])
 							drawIcon(movingIconXpos, movingY + 16, -1);
@@ -1433,7 +1435,7 @@ void vBlankHandler() {
 						}
 					} else {
 						const int movingY = (ms().theme == TWLSettings::ETheme3DS)
-							? 22 + ((CURPOS % 6) / 3) * 80 - movingAppYpos
+							? 22 + (CURPOS % 2) * 80 - movingAppYpos
 							: (titleboxYpos - 1) - movingAppYpos + titleboxYposDropDown[movingApp % 5];
 						glSprite(movingAppXpos, movingY, GL_FLIP_NONE, &tex().settingsImage()[1]);
 					}
@@ -1523,8 +1525,10 @@ void vBlankHandler() {
 
 		if (applaunchprep) {
 			const int launchCell = CURPOS % ThreeDSGridVisibleCount();
-			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? (launchCell % 4) * 64 : 8 + (launchCell % 3) * 88)) : 96;
-			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + (launchCell / ThreeDSGridColumns()) * 80) : 84;
+			const int launchColumn = launchCell / 2;
+			const int launchRow = launchCell % 2;
+			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? launchColumn * 64 : 8 + launchColumn * 88)) : 96;
+			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + launchRow * 80) : 84;
 			if (isDirectory[CURPOS]) {
 				glSprite(launchBoxX, launchBoxY + 3 - titleboxYmovepos, GL_FLIP_NONE, tex().folderImage());
 				if (customIcon[CURPOS])
@@ -1543,8 +1547,10 @@ void vBlankHandler() {
 		}
 		if (showSTARTborder && displayGameIcons && (ms().theme < 4)) {
 			const int selectedCell = CURPOS % ThreeDSGridVisibleCount();
-			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? (selectedCell % 4) * 64 : 8 + (selectedCell % 3) * 88)) : 96;
-			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + (selectedCell / ThreeDSGridColumns()) * 80) : tc().startBorderRenderY();
+			const int selectedColumn = selectedCell / 2;
+			const int selectedRow = selectedCell % 2;
+			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? selectedColumn * 64 : 8 + selectedColumn * 88)) : 96;
+			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + selectedRow * 80) : tc().startBorderRenderY();
 			glSprite(startBorderX, startBorderY, GL_FLIP_NONE,
 				 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
 							(tc().startBorderSpriteH() - 1)]);
