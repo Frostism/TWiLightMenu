@@ -330,7 +330,16 @@ void bottomBgLoad(int drawBubble, bool init = false) {
 
 void bottomBgRefresh() { bottomBgLoad(currentBg, false); }
 
-void drawBubble(const glImage *images) { glSprite(bubbleXpos, bubbleYpos, GL_FLIP_NONE, &images[0]); }
+void drawBubble(const glImage *images) {
+	if (ms().theme == TWLSettings::ETheme3DS && ThreeDSCarousel()) {
+		glTriangleFilled(tc().bubbleTipRenderX(), tc().bubbleTipRenderY(),
+				tc().bubbleTipRenderX() + 10, tc().bubbleTipRenderY(),
+				tc().bubbleTipRenderX() + 5, tc().bubbleTipRenderY() + 8,
+				RGB15(31, 31, 31));
+	} else {
+		glSprite(bubbleXpos, bubbleYpos, GL_FLIP_NONE, &images[0]);
+	}
+}
 
 void drawDbox() {
 	for (int y = 0; y < 192 / 16; y++) {
