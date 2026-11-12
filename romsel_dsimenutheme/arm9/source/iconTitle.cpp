@@ -231,7 +231,7 @@ void convertIconPalette(sNDSBannerExt* ndsBanner) {
 	}
 }
 
-void drawIcon(int Xpos, int Ypos, int num, s32 scale) {
+void drawIcon(int Xpos, int Ypos, int num, int scale) {
 	if (num == -1) {
 		if (scale == (1 << 12))
 			glSprite(Xpos, Ypos, bannerFlip[40], &getIcon(ICON_MOVING_BANK)[bnriconframenumY[40]]);
