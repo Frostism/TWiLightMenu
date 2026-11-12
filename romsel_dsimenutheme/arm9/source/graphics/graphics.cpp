@@ -1344,55 +1344,57 @@ void vBlankHandler() {
 					const int gridColumn = cell / 2;
 					const int gridRow = cell % 2;
 					boxDrawX = ThreeDSCarousel() ? 32 + cell * 80
-							: (GridDensity == 2 ? gridColumn * 64 : 8 + gridColumn * 88);
-					iconDrawX = boxDrawX + 16;
-					boxDrawY = ThreeDSCarousel() ? 64 : 22 + gridRow * 80;
-					iconDrawY = boxDrawY + 16;
+							: (GridDensity == 2 ? 8 + gridColumn * 64 : 8 + gridColumn * 88);
+					iconDrawX = boxDrawX + (GridDensity == 2 ? 12 : 16);
+					boxDrawY = ThreeDSCarousel() ? 64 : (GridDensity == 2 ? 30 + gridRow * 72 : 22 + gridRow * 80);
+					iconDrawY = boxDrawY + (GridDensity == 2 ? 12 : 16);
 				}
 				if (boxDrawX <= -64 || boxDrawX >= SCREEN_WIDTH)
 					continue;
 
 				if (i < spawnedtitleboxes) {
 					if (isDirectory[i]) {
-						if (ms().theme == TWLSettings::ETheme3DS)
-							glSprite(boxDrawX,
-									 boxDrawY, GL_FLIP_NONE,
-									 tex().folderImage());
-						else
-							glSprite(boxDrawX,
-									 (titleboxYpos - 3) + titleboxYposDropDown[i % 5],
+						if (ms().theme == TWLSettings::ETheme3DS) {
+							if (GridDensity == 2)
+								glSpriteScale(boxDrawX, boxDrawY, 3072, GL_FLIP_NONE, tex().folderImage());
+							else
+								glSprite(boxDrawX, boxDrawY, GL_FLIP_NONE, tex().folderImage());
+						} else {
+							glSprite(boxDrawX, (titleboxYpos - 3) + titleboxYposDropDown[i % 5],
 									 GL_FLIP_NONE, tex().folderImage());
+						}
 						if (customIcon[i])
-							drawIcon(iconDrawX,
-									 iconDrawY,
-									 i);
+							drawIcon(iconDrawX, iconDrawY, i, (GridDensity == 2 && ms().theme == TWLSettings::ETheme3DS) ? 3072 : (1 << 12));
 					} else if (!applaunchprep || CURPOS != i) { // Only draw the icon if we're not launching the selcted app
 						if (!bnrSysSettings[i]) {
 							if (ms().theme == TWLSettings::ETheme3DS) {
-								glSprite(boxDrawX,
-										 boxDrawY, GL_FLIP_NONE,
-										 tex().boxfullImage());
+								if (GridDensity == 2)
+									glSpriteScale(boxDrawX, boxDrawY, 3072, GL_FLIP_NONE, tex().boxfullImage());
+								else
+									glSprite(boxDrawX, boxDrawY, GL_FLIP_NONE, tex().boxfullImage());
 							} else {
 								glSprite(boxDrawX,
 										 titleboxYpos + titleboxYposDropDown[i % 5],
 										 GL_FLIP_NONE, &tex().boxfullImage()[0]);
 							}
 						}
-						if (bnrSysSettings[i])
-							glSprite(boxDrawX,
-									 (ms().theme == TWLSettings::ETheme3DS ? boxDrawY : (titleboxYpos - 1) + titleboxYposDropDown[i % 5]),
+						if (bnrSysSettings[i]) {
+							if (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2)
+								glSpriteScale(boxDrawX, boxDrawY, 3072, GL_FLIP_NONE, &tex().settingsImage()[1]);
+							else
+								glSprite(boxDrawX, (ms().theme == TWLSettings::ETheme3DS ? boxDrawY : (titleboxYpos - 1) + titleboxYposDropDown[i % 5]),
 									 GL_FLIP_NONE, &tex().settingsImage()[1]);
-						else
-							drawIcon(iconDrawX,
-										iconDrawY,
-										i);
+						} else {
+							drawIcon(iconDrawX, iconDrawY, i, (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2) ? 3072 : (1 << 12));
+						}
 					}
 				} else {
 					// Empty box
 					if (ms().theme > TWLSettings::EThemeDSi) {
-						glSprite(boxDrawX,
-								 boxDrawY,
-								 GL_FLIP_NONE, tex().boxemptyImage());
+						if (ms().theme == TWLSettings::ETheme3DS && GridDensity == 2)
+							glSpriteScale(boxDrawX, boxDrawY, 3072, GL_FLIP_NONE, tex().boxemptyImage());
+						else
+							glSprite(boxDrawX, boxDrawY, GL_FLIP_NONE, tex().boxemptyImage());
 					} else {
 						glSprite(boxDrawX,
 								 boxDrawY,
@@ -1526,20 +1528,32 @@ void vBlankHandler() {
 			const int launchCell = CURPOS % ThreeDSGridVisibleCount();
 			const int launchColumn = launchCell / 2;
 			const int launchRow = launchCell % 2;
-			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? launchColumn * 64 : 8 + launchColumn * 88)) : 96;
-			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + launchRow * 80) : 84;
+			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 8 + launchColumn * 64 : 8 + launchColumn * 88)) : 96;
+			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : (GridDensity == 2 ? 30 + launchRow * 72 : 22 + launchRow * 80)) : 84;
+			const int launchIconInset = GridDensity == 2 ? 12 : 16;
+			const s32 launchScale = GridDensity == 2 ? 3072 : (1 << 12);
 			if (isDirectory[CURPOS]) {
-				glSprite(launchBoxX, launchBoxY + 3 - titleboxYmovepos, GL_FLIP_NONE, tex().folderImage());
+				if (GridDensity == 2)
+					glSpriteScale(launchBoxX, launchBoxY + 3 - titleboxYmovepos, launchScale, GL_FLIP_NONE, tex().folderImage());
+				else
+					glSprite(launchBoxX, launchBoxY + 3 - titleboxYmovepos, GL_FLIP_NONE, tex().folderImage());
 				if (customIcon[CURPOS])
-					drawIcon(launchBoxX + 16, launchBoxY + 16 - titleboxYmovepos, CURPOS);
+					drawIcon(launchBoxX + launchIconInset, launchBoxY + launchIconInset - titleboxYmovepos, CURPOS, launchScale);
 			} else {
 				if (!bnrSysSettings[CURPOS]) {
-					glSprite(launchBoxX, launchBoxY - titleboxYmovepos, GL_FLIP_NONE, tex().boxfullImage());
+					if (GridDensity == 2)
+						glSpriteScale(launchBoxX, launchBoxY - titleboxYmovepos, launchScale, GL_FLIP_NONE, tex().boxfullImage());
+					else
+						glSprite(launchBoxX, launchBoxY - titleboxYmovepos, GL_FLIP_NONE, tex().boxfullImage());
 				}
-				if (bnrSysSettings[CURPOS])
-					glSprite(launchBoxX, launchBoxY - 1 - titleboxYmovepos, GL_FLIP_NONE, &tex().settingsImage()[1]);
-				else
-					drawIcon(launchBoxX + 16, launchBoxY + 16 - titleboxYmovepos, CURPOS);
+				if (bnrSysSettings[CURPOS]) {
+					if (GridDensity == 2)
+						glSpriteScale(launchBoxX, launchBoxY - 1 - titleboxYmovepos, launchScale, GL_FLIP_NONE, &tex().settingsImage()[1]);
+					else
+						glSprite(launchBoxX, launchBoxY - 1 - titleboxYmovepos, GL_FLIP_NONE, &tex().settingsImage()[1]);
+				} else {
+					drawIcon(launchBoxX + launchIconInset, launchBoxY + launchIconInset - titleboxYmovepos, CURPOS, launchScale);
+				}
 			}
 			// Draw dots after selecting a game/app
 			dots().drawAuto();
@@ -1548,8 +1562,8 @@ void vBlankHandler() {
 			const int selectedCell = CURPOS % ThreeDSGridVisibleCount();
 			const int selectedColumn = selectedCell / 2;
 			const int selectedRow = selectedCell % 2;
-			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? selectedColumn * 64 : 8 + selectedColumn * 88)) : 96;
-			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + selectedRow * 80) : tc().startBorderRenderY();
+			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 8 + selectedColumn * 64 : 8 + selectedColumn * 88)) : 96;
+			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : (GridDensity == 2 ? 30 + selectedRow * 72 : 22 + selectedRow * 80)) : tc().startBorderRenderY();
 			glSprite(startBorderX, startBorderY, GL_FLIP_NONE,
 				 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
 							(tc().startBorderSpriteH() - 1)]);
