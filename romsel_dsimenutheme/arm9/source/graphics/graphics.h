@@ -36,6 +36,10 @@ void clearBoxArt();
 // Resume the 3DS theme's background video after the band has been covered.
 void resumeRotatingCubesVideo();
 void graphicsInit();
+extern int GridDensity;
+int ThreeDSGridColumns();
+int ThreeDSGridVisibleCount();
+bool ThreeDSCarousel();
 extern u16* colorTable;
 
 template<typename T> inline const T abs(T const & x)
