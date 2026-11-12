@@ -3645,9 +3645,9 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				dsiWareRAMLimitMsgPrepped = false;
 				infoCheckTimer = 0;
 			} else if (ms().theme == TWLSettings::ETheme3DS && !ThreeDSCarousel() && (held & KEY_UP)) {
-				if (CURPOS % 2 == 1) moveGridCursorHorizontal(ThreeDSCarousel() ? -1 : -2, dirContents[scrn]);
+				if (CURPOS % 2 == 1) moveGridCursor(-1, dirContents[scrn]);
 			} else if (ms().theme == TWLSettings::ETheme3DS && !ThreeDSCarousel() && (held & KEY_DOWN)) {
-				if (CURPOS % 2 == 0) moveGridCursorHorizontal(ThreeDSCarousel() ? 1 : 2, dirContents[scrn]);
+				if (CURPOS % 2 == 0) moveGridCursor(1, dirContents[scrn]);
 			} else if ((pressed & KEY_UP) && (PAGENUM > 0 || CURPOS > 0 || !backFound) && (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL) && !dirInfoIniFound && (ms().sortMethod == 4) && (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))) { // Move apps (DSi & 3DS themes)
 				MoveModeState mv = beginMoveMode(scrn, dirContents, /* followStylus = */ false, 0);
 
@@ -3683,9 +3683,9 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 							edgeBumpSoundPlayed = true;
 						}
 					} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_UP)) {
-						moveGridCursor(-3, dirContents[scrn]);
+						moveGridCursor(-1, dirContents[scrn]);
 					} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_DOWN)) {
-						moveGridCursor(3, dirContents[scrn]);
+						moveGridCursor(1, dirContents[scrn]);
 					} else if (ms().theme == TWLSettings::ETheme3DS && (pressed & KEY_B)) {
 						break;
 					} else if (pressed & KEY_DOWN) {
