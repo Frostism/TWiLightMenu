@@ -546,8 +546,9 @@ static void moveGridCursor(int offset, const std::vector<DirEntry> &entries) {
 	clearText(false);
 	if (CURPOS + PAGENUM * 40 < (int)entries.size()) {
 		currentBg = 1;
-		titleUpdate(entries[CURPOS + PAGENUM * 40].isDirectory,
-				entries[CURPOS + PAGENUM * 40].name, CURPOS);
+		if (ms().theme != TWLSettings::ETheme3DS)
+			titleUpdate(entries[CURPOS + PAGENUM * 40].isDirectory,
+					entries[CURPOS + PAGENUM * 40].name, CURPOS);
 		bannerTextShown = true;
 	} else {
 		currentBg = 0;
@@ -3524,8 +3525,9 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 					currentBg = (ms().theme == TWLSettings::EThemeSaturn ? 0 : 1), displayBoxArt = ms().showBoxArt;
 					if (!bannerTextShown) {
 						clearText();
-						titleUpdate(dirContents[scrn].at(CURPOS + PAGENUM * 40).isDirectory,
-								dirContents[scrn].at(CURPOS + PAGENUM * 40).name, CURPOS);
+						if (ms().theme != TWLSettings::ETheme3DS)
+							titleUpdate(dirContents[scrn].at(CURPOS + PAGENUM * 40).isDirectory,
+									dirContents[scrn].at(CURPOS + PAGENUM * 40).name, CURPOS);
 						bannerTextShown = true;
 					}
 					if ((infoCheckTimer < 30) && !isNdz[CURPOS] && (bnrRomType[CURPOS] == 0) && (isHomebrew[CURPOS] == 0)) {
@@ -3594,7 +3596,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 			buttonArrowTouched[1] = ((keysHeld() & KEY_TOUCH) && touch.py > 171 && touch.px > 236);
 
 			if (ms().theme == TWLSettings::ETheme3DS && (pressed & KEY_TOUCH)
-					&& touch.py >= 170 && touch.py <= 190 && touch.px >= 208) {
+					&& touch.py >= 1 && touch.py <= 21 && touch.px >= 208) {
 				GridDensity = (touch.px < 231) ? std::max(GridDensity - 1, 0) : std::min(GridDensity + 1, 2);
 					currentBg = 1;
 					refreshGridIcons(scrn, dirContents, CURPOS, false);
@@ -3785,7 +3787,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 						: (startTouch.px >= 96 && startTouch.px < 160) ? 1
 						: (startTouch.px >= 184 && startTouch.px < 248) ? 2 : -1;
 				const int touchGridRow = ThreeDSCarousel()
-						? (startTouch.py >= 64 && startTouch.py < 128 ? 0 : -1)
+						? (startTouch.py >= 112 && startTouch.py < 176 ? 0 : -1)
 						: (startTouch.py >= 22 && startTouch.py < 86) ? 0
 						: (startTouch.py >= 102 && startTouch.py < 166) ? 1 : -1;
 				const bool touchOnGridTile = touchGridCol >= 0 && touchGridCol < ThreeDSGridColumns()
@@ -3945,7 +3947,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 							: (startTouch.px >= 96 && startTouch.px < 160) ? 1
 							: (startTouch.px >= 184 && startTouch.px < 248) ? 2 : -1;
 						const int row = ThreeDSCarousel()
-							? (startTouch.py >= 64 && startTouch.py < 128 ? 0 : -1)
+							? (startTouch.py >= 112 && startTouch.py < 176 ? 0 : -1)
 							: (startTouch.py >= 22 && startTouch.py < 86) ? 0
 							: (startTouch.py >= 102 && startTouch.py < 166) ? 1 : -1;
 						if (col >= 0 && col < ThreeDSGridColumns() && row >= 0) {
