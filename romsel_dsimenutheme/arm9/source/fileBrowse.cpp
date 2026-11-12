@@ -3469,6 +3469,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 		dsiWareRAMLimitMsgPrepped = false;
 		int infoCheckTimer = 0;
 		bool hasAP = false;
+		int gridMoveCooldown = 0;
 
 		while (1) {
 			if (!stopSoundPlayed) {
@@ -3498,6 +3499,8 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				held = keysDownRepeat();
 				touchRead(&touch);
 
+				if (gridMoveCooldown > 0)
+					gridMoveCooldown--;
 				boxArtFound = ((CURPOS + PAGENUM * 40) < ((int)dirContents[scrn].size()));
 				if (boxArtFound) {
 					boxArtFilename = dirContents[scrn].at(CURPOS + PAGENUM * 40).name.c_str();
@@ -3588,9 +3591,28 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 			buttonArrowTouched[0] = ((keysHeld() & KEY_TOUCH) && touch.py > 171 && touch.px < 19);
 			buttonArrowTouched[1] = ((keysHeld() & KEY_TOUCH) && touch.py > 171 && touch.px > 236);
 
-			if ((held & KEY_LEFT) || ((held & KEY_TOUCH) && touch.py > 171 && touch.px < 19 && ms().theme == TWLSettings::EThemeDSi)) { // Left or button arrow (DSi theme)
-				if (ms().theme == TWLSettings::ETheme3DS)
-					moveGridCursorHorizontal(-1, dirContents[scrn]);
+			if (ms().theme == TWLSettings::ETheme3DS && (pressed & KEY_TOUCH)
+					&& touch.py >= 170 && touch.py <= 191 && touch.px >= 208) {
+				GridDensity = (touch.px < 231) ? 0 : 1;
+					if (GridDensity == 0) {
+						CURPOS = std::clamp(CURPOS, 0, last_used_box);
+						currentBg = 1;
+					} else {
+						currentBg = 1;
+					}
+					refreshGridIcons(scrn, dirContents, CURPOS, false);
+					showSTARTborder = true;
+					bannerTextShown = false;
+					settingsChanged = true;
+					snd().playSelect();
+			} else if ((held & KEY_LEFT) || ((held & KEY_TOUCH) && ((touch.py > 171 && touch.px < 19 && ms().theme == TWLSettings::EThemeDSi)
+					|| (touch.py >= 86 && touch.py <= 106 && touch.px < 18 && ms().theme == TWLSettings::ETheme3DS)))) { // Left or button arrow (DSi theme)
+				if (ms().theme == TWLSettings::ETheme3DS) {
+					if (gridMoveCooldown == 0) {
+						moveGridCursorHorizontal(-1, dirContents[scrn]);
+						gridMoveCooldown = 6;
+					}
+				}
 				else
 					moveCursor(false, dirContents[scrn]);
 				dsiBinariesChecked = false;
@@ -3598,9 +3620,14 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				checkedDSiWareCompatibleB4DS = false;
 				dsiWareRAMLimitMsgPrepped = false;
 				infoCheckTimer = 0;
-			} else if ((held & KEY_RIGHT) || ((held & KEY_TOUCH) && touch.py > 171 && touch.px > 236 && ms().theme == TWLSettings::EThemeDSi)) { // Right or button arrow (DSi theme)
-				if (ms().theme == TWLSettings::ETheme3DS)
-					moveGridCursorHorizontal(1, dirContents[scrn]);
+			} else if ((held & KEY_RIGHT) || ((held & KEY_TOUCH) && ((touch.py > 171 && touch.px > 236 && ms().theme == TWLSettings::EThemeDSi)
+					|| (touch.py >= 86 && touch.py <= 106 && touch.px > 238 && ms().theme == TWLSettings::ETheme3DS)))) { // Right or button arrow (DSi theme)
+				if (ms().theme == TWLSettings::ETheme3DS) {
+					if (gridMoveCooldown == 0) {
+						moveGridCursorHorizontal(1, dirContents[scrn]);
+						gridMoveCooldown = 6;
+					}
+				}
 				else
 					moveCursor(true, dirContents[scrn]);
 				dsiBinariesChecked = false;
