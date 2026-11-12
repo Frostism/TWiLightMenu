@@ -3967,8 +3967,9 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 									bannerTextShown = false;
 									if (CURPOS + PAGENUM * 40 < (int)dirContents[scrn].size()) {
 										currentBg = 1;
-										titleUpdate(dirContents[scrn][CURPOS + PAGENUM * 40].isDirectory,
-												dirContents[scrn][CURPOS + PAGENUM * 40].name, CURPOS);
+										if (ms().theme != TWLSettings::ETheme3DS)
+											titleUpdate(dirContents[scrn][CURPOS + PAGENUM * 40].isDirectory,
+													dirContents[scrn][CURPOS + PAGENUM * 40].name, CURPOS);
 										bannerTextShown = true;
 									} else {
 										currentBg = 0;
