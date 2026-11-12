@@ -1564,15 +1564,31 @@ void vBlankHandler() {
 			const int selectedRow = selectedCell % 2;
 			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : (GridDensity == 2 ? 8 + selectedColumn * 64 : 8 + selectedColumn * 88)) : 96;
 			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : (GridDensity == 2 ? 30 + selectedRow * 72 : 22 + selectedRow * 80)) : tc().startBorderRenderY();
-			glSprite(startBorderX, startBorderY, GL_FLIP_NONE,
-				 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
+			const s32 borderScale = GridDensity == 2 ? 3072 : (1 << 12);
+			const int borderWidth = GridDensity == 2 ? tc().startBorderSpriteW() * 3 / 4 : tc().startBorderSpriteW();
+			if (GridDensity == 2) {
+				glSpriteScale(startBorderX, startBorderY, borderScale, GL_FLIP_NONE,
+					 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
 							(tc().startBorderSpriteH() - 1)]);
-			glSprite(startBorderX + tc().startBorderSpriteW(), startBorderY, GL_FLIP_H,
-				 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
+				glSpriteScale(startBorderX + borderWidth, startBorderY, borderScale, GL_FLIP_H,
+					 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
 							(tc().startBorderSpriteH() - 1)]);
-			if (bnrWirelessIcon[CURPOS] > 0)
+			} else {
 				glSprite(startBorderX, startBorderY, GL_FLIP_NONE,
-					 &tex().wirelessIcons()[(bnrWirelessIcon[CURPOS] - 1) & 31]);
+					 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
+							(tc().startBorderSpriteH() - 1)]);
+				glSprite(startBorderX + tc().startBorderSpriteW(), startBorderY, GL_FLIP_H,
+					 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
+							(tc().startBorderSpriteH() - 1)]);
+			}
+			if (bnrWirelessIcon[CURPOS] > 0) {
+				if (GridDensity == 2)
+					glSpriteScale(startBorderX, startBorderY, borderScale, GL_FLIP_NONE,
+							&tex().wirelessIcons()[(bnrWirelessIcon[CURPOS] - 1) & 31]);
+				else
+					glSprite(startBorderX, startBorderY, GL_FLIP_NONE,
+							&tex().wirelessIcons()[(bnrWirelessIcon[CURPOS] - 1) & 31]);
+			}
 
 			if (currentBg == 1 && tc().playStopSound() && needToPlayStopSound &&
 				waitForNeedToPlayStopSound == 0) {
