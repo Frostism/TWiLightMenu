@@ -563,7 +563,8 @@ static void moveGridCursor(int offset, const std::vector<DirEntry> &entries) {
 }
 
 static void moveGridCursorHorizontal(int direction, const std::vector<DirEntry> &entries) {
-	if ((direction < 0 && CURPOS % 3 == 0) || (direction > 0 && CURPOS % 3 == 2)) {
+	if (!ThreeDSCarousel()
+			&& ((direction < 0 && CURPOS % 3 == 0) || (direction > 0 && CURPOS % 3 == 2))) {
 		snd().playWrong();
 		return;
 	}
