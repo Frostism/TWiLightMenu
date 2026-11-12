@@ -106,6 +106,7 @@ float movingArrowYpos = 59;
 bool movingArrowYdirection = true;
 bool showMovingArrow = false;
 bool displayGameIcons = false;
+int GridDensity = 1;
 bool rumblePos = false;
 
 extern bool buttonArrowTouched[2];
@@ -214,6 +215,10 @@ u16* colorTable = NULL;
 
 int bubbleYpos = 80;
 int bubbleXpos = 122;
+
+int ThreeDSGridColumns() { return GridDensity == 0 ? 3 : 3; }
+int ThreeDSGridVisibleCount() { return GridDensity == 0 ? 3 : 6; }
+bool ThreeDSCarousel() { return GridDensity == 0; }
 
 void vramcpy_ui(void *dest, const void *src, int size) {
 	u16 *destination = (u16 *)dest;
@@ -1258,8 +1263,12 @@ void vBlankHandler() {
 					  "icon grid draws more boxes than it has texture banks");
 			int maxIconNumber = (ms().theme == TWLSettings::EThemeSaturn ? 0 : ICON_GRID_MAX_OFFSET);
 			int gridStart = (CURPOS / 6) * 6;
-			int firstIcon = (ms().theme == TWLSettings::ETheme3DS) ? gridStart : std::max(CURPOS - maxIconNumber, 0);
-			int lastIcon = (ms().theme == TWLSettings::ETheme3DS) ? std::min(gridStart + 5, 39) : std::min(CURPOS + maxIconNumber, 39);
+			int firstIcon = (ms().theme == TWLSettings::ETheme3DS)
+					? (ThreeDSCarousel() ? std::max(CURPOS - 1, 0) : gridStart)
+					: std::max(CURPOS - maxIconNumber, 0);
+			int lastIcon = (ms().theme == TWLSettings::ETheme3DS)
+					? (ThreeDSCarousel() ? std::min(CURPOS + 1, 39) : std::min(gridStart + 5, 39))
+					: std::min(CURPOS + maxIconNumber, 39);
 			for (int pos = firstIcon; pos <= lastIcon; pos++) {
 				int i = pos;
 
@@ -1321,10 +1330,10 @@ void vBlankHandler() {
 				int boxDrawY = titleboxYpos + titleboxYposDropDown[i % 5];
 				int iconDrawY = boxDrawY + iconYposOnTitleBox;
 				if (ms().theme == TWLSettings::ETheme3DS) {
-					const int cell = pos - gridStart;
-					boxDrawX = 8 + (cell % 3) * 88;
+					const int cell = ThreeDSCarousel() ? pos - CURPOS + 1 : pos - gridStart;
+					boxDrawX = ThreeDSCarousel() ? 32 + cell * 80 : 8 + (cell % 3) * 88;
 					iconDrawX = boxDrawX + 16;
-					boxDrawY = 22 + (cell / 3) * 80;
+					boxDrawY = ThreeDSCarousel() ? 64 : 22 + (cell / 3) * 80;
 					iconDrawY = boxDrawY + 16;
 				}
 				if (boxDrawX <= -64 || boxDrawX >= SCREEN_WIDTH)
@@ -1479,8 +1488,8 @@ void vBlankHandler() {
 		}
 
 		if (applaunchprep) {
-			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? 8 + (CURPOS % 3) * 88 : 96;
-			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? 22 + ((CURPOS % 6) / 3) * 80 : 84;
+			const int launchBoxX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : 8 + (CURPOS % 3) * 88) : 96;
+			const int launchBoxY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + ((CURPOS % 6) / 3) * 80) : 84;
 			if (isDirectory[CURPOS]) {
 				glSprite(launchBoxX, launchBoxY + 3 - titleboxYmovepos, GL_FLIP_NONE, tex().folderImage());
 				if (customIcon[CURPOS])
@@ -1498,8 +1507,8 @@ void vBlankHandler() {
 			dots().drawAuto();
 		}
 		if (showSTARTborder && displayGameIcons && (ms().theme < 4)) {
-			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? 8 + (CURPOS % 3) * 88 : 96;
-			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? 22 + ((CURPOS % 6) / 3) * 80 : tc().startBorderRenderY();
+			const int startBorderX = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 112 : 8 + (CURPOS % 3) * 88) : 96;
+			const int startBorderY = (ms().theme == TWLSettings::ETheme3DS) ? (ThreeDSCarousel() ? 64 : 22 + ((CURPOS % 6) / 3) * 80) : tc().startBorderRenderY();
 			glSprite(startBorderX, startBorderY, GL_FLIP_NONE,
 				 &tex().startbrdImage()[startBorderZoomAnimSeq[startBorderZoomAnimNum] &
 							(tc().startBorderSpriteH() - 1)]);
@@ -1529,7 +1538,8 @@ void vBlankHandler() {
 		}
 
 		// Refresh the background layer.
-		if (currentBg == 1 && ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL)
+		if (currentBg == 1 && ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL
+				&& !(ms().theme == TWLSettings::ETheme3DS && !ThreeDSCarousel()))
 			drawBubble(tex().bubbleImage());
 		if (showSTARTborder && displayGameIcons && ms().theme == TWLSettings::EThemeDSi) {
 			glSprite(96, tc().startTextRenderY(), GL_FLIP_NONE, &tex().startImage()[ms().getGameLanguage()]);
