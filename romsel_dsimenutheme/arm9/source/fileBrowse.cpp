@@ -3525,7 +3525,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 					currentBg = (ms().theme == TWLSettings::EThemeSaturn ? 0 : 1), displayBoxArt = ms().showBoxArt;
 					if (!bannerTextShown) {
 						clearText();
-						if (ms().theme != TWLSettings::ETheme3DS)
+						if (ms().theme != TWLSettings::ETheme3DS || ThreeDSCarousel())
 							titleUpdate(dirContents[scrn].at(CURPOS + PAGENUM * 40).isDirectory,
 									dirContents[scrn].at(CURPOS + PAGENUM * 40).name, CURPOS);
 						bannerTextShown = true;
@@ -4071,7 +4071,8 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 									clearText();
 									if (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()) && boxDest > -28 && boxDest < titleboxXspacing * 39 + 28) {
 										currentBg = 1;
-										titleUpdate(dirContents[scrn][CURPOS + PAGENUM * 40].isDirectory,
+										if (ms().theme != TWLSettings::ETheme3DS || ThreeDSCarousel())
+											titleUpdate(dirContents[scrn][CURPOS + PAGENUM * 40].isDirectory,
 													dirContents[scrn][CURPOS + PAGENUM * 40].name,
 													CURPOS);
 									} else {
@@ -4116,7 +4117,8 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 						clearText();
 						if (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()) && titleboxXdest[ms().secondaryDevice] > -28 && titleboxXdest[ms().secondaryDevice] < titleboxXspacing * 39 + 28) {
 							currentBg = 1;
-							titleUpdate(dirContents[scrn][CURPOS + PAGENUM * 40].isDirectory,
+							if (ms().theme != TWLSettings::ETheme3DS || ThreeDSCarousel())
+								titleUpdate(dirContents[scrn][CURPOS + PAGENUM * 40].isDirectory,
 										dirContents[scrn][CURPOS + PAGENUM * 40].name,
 										CURPOS);
 						} else {
