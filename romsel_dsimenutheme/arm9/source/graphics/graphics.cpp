@@ -1111,7 +1111,10 @@ void vBlankHandler() {
 			if (bnriconisDSi[i] && playBannerSequence(i) && !updateFrame) {
 				updateFrame = (displayGameIcons && (ms().theme != TWLSettings::EThemeSaturn))
 					? (ms().theme == TWLSettings::ETheme3DS
-						? (i >= (CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount() && i < (CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount() + ThreeDSGridVisibleCount())
+						? (ThreeDSCarousel()
+							? (i >= std::max(CURPOS - 1, 0) && i <= std::min(CURPOS + 1, 39))
+							: (i >= (CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount()
+								&& i < (CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount() + ThreeDSGridVisibleCount()))
 						: ((i >= CURPOS-ICON_GRID_MAX_OFFSET && i <= CURPOS+ICON_GRID_MAX_OFFSET) || i == 40))
 					: (i == CURPOS);
 			}
