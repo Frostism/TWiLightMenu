@@ -512,11 +512,12 @@ void displayNowLoading(void) {
 // the progress bar animates. The touch and drag paths must pass false, or they
 // stall the scroll by a vblank per icon.
 static void refreshGridIcons(const std::vector<DirEntry> &entries, int centre, bool waitVBlank) {
+	const int gridCount = ThreeDSGridVisibleCount();
 	const int first = (ms().theme == TWLSettings::ETheme3DS)
-			? (centre / 6) * 6
+			? (centre / gridCount) * gridCount
 			: std::max(centre - ICON_GRID_MAX_OFFSET, 0);
 	const int last = (ms().theme == TWLSettings::ETheme3DS)
-			? std::min(first + 5, 39)
+			? std::min(first + gridCount - 1, 39)
 			: std::min(centre + ICON_GRID_MAX_OFFSET, 39);
 
 	for (int pos = first; pos <= last; pos++) {
@@ -564,7 +565,8 @@ static void moveGridCursor(int offset, const std::vector<DirEntry> &entries) {
 
 static void moveGridCursorHorizontal(int direction, const std::vector<DirEntry> &entries) {
 	if (!ThreeDSCarousel()
-			&& ((direction < 0 && CURPOS % 3 == 0) || (direction > 0 && CURPOS % 3 == 2))) {
+			&& ((direction < 0 && CURPOS % ThreeDSGridColumns() == 0)
+			|| (direction > 0 && CURPOS % ThreeDSGridColumns() == ThreeDSGridColumns() - 1))) {
 		snd().playWrong();
 		return;
 	}
@@ -3637,9 +3639,9 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				dsiWareRAMLimitMsgPrepped = false;
 				infoCheckTimer = 0;
 			} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_UP)) {
-				moveGridCursor(-3, dirContents[scrn]);
+				moveGridCursor(-ThreeDSGridColumns(), dirContents[scrn]);
 			} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_DOWN)) {
-				moveGridCursor(3, dirContents[scrn]);
+				moveGridCursor(ThreeDSGridColumns(), dirContents[scrn]);
 			} else if ((pressed & KEY_UP) && (PAGENUM > 0 || CURPOS > 0 || !backFound) && (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL) && !dirInfoIniFound && (ms().sortMethod == 4) && (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))) { // Move apps (DSi & 3DS themes)
 				MoveModeState mv = beginMoveMode(scrn, dirContents, /* followStylus = */ false, 0);
 
@@ -3849,7 +3851,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 							if (ms().theme == TWLSettings::ETheme3DS) {
 								const int col = std::clamp((touch.px - 8) / 88, 0, 2);
 								const int row = touch.py >= 96 ? 1 : 0;
-								want = std::clamp((CURPOS / 6) * 6 + row * 3 + col, lo, hi);
+								want = std::clamp((CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount() + row * ThreeDSGridColumns() + col, lo, hi);
 							} else {
 								want = std::clamp(insertSlotAtScreenX(touch.px), lo, hi);
 							}
