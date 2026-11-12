@@ -564,9 +564,10 @@ static void moveGridCursor(int offset, const std::vector<DirEntry> &entries) {
 }
 
 static void moveGridCursorHorizontal(int direction, const std::vector<DirEntry> &entries) {
+	const int column = (CURPOS % ThreeDSGridVisibleCount()) / 2;
 	if (!ThreeDSCarousel()
-			&& ((direction < 0 && CURPOS % ThreeDSGridColumns() == 0)
-			|| (direction > 0 && CURPOS % ThreeDSGridColumns() == ThreeDSGridColumns() - 1))) {
+			&& ((direction < 0 && column == 0)
+			|| (direction > 0 && column == ThreeDSGridColumns() - 1))) {
 		snd().playWrong();
 		return;
 	}
@@ -3614,11 +3615,11 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 					settingsChanged = true;
 					snd().playSelect();
 			} else if ((held & KEY_LEFT) || ((held & KEY_TOUCH) && ((touch.py > 171 && touch.px < 19 && ms().theme == TWLSettings::EThemeDSi)
-					|| (touch.py >= 86 && touch.py <= 106 && touch.px < 18 && ms().theme == TWLSettings::ETheme3DS)))) { // Left or button arrow (DSi theme)
+					|| (touch.py >= 88 && touch.py <= 100 && touch.px < 18 && ms().theme == TWLSettings::ETheme3DS)))) { // Left or button arrow (DSi theme)
 				if (ms().theme == TWLSettings::ETheme3DS) {
 					if (gridMoveCooldown == 0) {
 						moveGridCursorHorizontal(ThreeDSCarousel() ? -1 : -2, dirContents[scrn]);
-						gridMoveCooldown = 6;
+						gridMoveCooldown = 12;
 					}
 				}
 				else
