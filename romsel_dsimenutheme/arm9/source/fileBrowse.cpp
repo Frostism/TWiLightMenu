@@ -3761,7 +3761,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				if (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))
 					showSTARTborder = true;
 			} else if ((pressed & KEY_TOUCH) && touch.py > (ms().theme == TWLSettings::ETheme3DS ? 16 : 76)
-					&& touch.py < (ms().theme == TWLSettings::EThemeDSi ? 164 : (ms().theme == TWLSettings::ETheme3DS ? 172 : 144))) { // Selecting or dragging icons
+					&& touch.py < (ms().theme == TWLSettings::EThemeDSi ? 164 : (ms().theme == TWLSettings::ETheme3DS ? 180 : 144))) { // Selecting or dragging icons
 				touchPosition startTouch = touch;
 				touchPosition prevTouch1 = touch;
 				touchPosition prevTouch2 = touch;
