@@ -1510,12 +1510,11 @@ void vBlankHandler() {
 			glBoxFilled(239, 14, 243, 18, RGB15(31, 31, 31));
 			glBoxFilled(245, 14, 249, 18, RGB15(31, 31, 31));
 
-			if (CURPOS > 0) {
-				glTriangleFilled(4, 96, 14, 86, 14, 106, RGB15(31, 31, 31));
-			}
-			if (CURPOS < last_used_box) {
-				glTriangleFilled(252, 96, 242, 86, 242, 106, RGB15(31, 31, 31));
-			}
+			const int arrowY = ThreeDSCarousel() ? 146 : 96;
+			if (CURPOS > 0)
+				glTriangleFilled(4, arrowY, 14, arrowY - 10, 14, arrowY + 10, RGB15(31, 31, 31));
+			if (CURPOS < last_used_box)
+				glTriangleFilled(252, arrowY, 242, arrowY - 10, 242, arrowY + 10, RGB15(31, 31, 31));
 
 			// Replace by baked-in backgrounds on 3DS.
 
