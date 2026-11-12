@@ -4606,7 +4606,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				} else
 
 				// Exit to system menu by touching corner button
-				if ((pressed & KEY_TOUCH) && touch.py >= 0 && touch.py <= 26 && touch.px >= 212 && touch.px <= 255 && !sys().isRegularDS()) {
+				if ((pressed & KEY_TOUCH) && touch.py >= 0 && touch.py <= 26 && touch.px >= 212 && touch.px <= 255 && !sys().isRegularDS() && ms().theme != TWLSettings::ETheme3DS) {
 					exitToSystemMenu();
 				} else
 
