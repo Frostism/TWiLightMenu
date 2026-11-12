@@ -564,13 +564,6 @@ static void moveGridCursor(int offset, const std::vector<DirEntry> &entries) {
 }
 
 static void moveGridCursorHorizontal(int direction, const std::vector<DirEntry> &entries) {
-	const int column = (CURPOS % ThreeDSGridVisibleCount()) / 2;
-	if (!ThreeDSCarousel()
-			&& ((direction < 0 && column == 0)
-			|| (direction > 0 && column == ThreeDSGridColumns() - 1))) {
-		snd().playWrong();
-		return;
-	}
 	moveGridCursor(direction, entries);
 }
 
@@ -3601,14 +3594,9 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 			buttonArrowTouched[1] = ((keysHeld() & KEY_TOUCH) && touch.py > 171 && touch.px > 236);
 
 			if (ms().theme == TWLSettings::ETheme3DS && (pressed & KEY_TOUCH)
-					&& touch.py >= 2 && touch.py <= 22 && touch.px >= 208) {
+					&& touch.py >= 170 && touch.py <= 190 && touch.px >= 208) {
 				GridDensity = (touch.px < 231) ? std::max(GridDensity - 1, 0) : std::min(GridDensity + 1, 2);
-					if (GridDensity == 0) {
-						CURPOS = std::clamp(CURPOS, 0, last_used_box);
-						currentBg = 1;
-					} else {
-						currentBg = 1;
-					}
+					currentBg = 1;
 					refreshGridIcons(scrn, dirContents, CURPOS, false);
 					showSTARTborder = true;
 					bannerTextShown = false;
