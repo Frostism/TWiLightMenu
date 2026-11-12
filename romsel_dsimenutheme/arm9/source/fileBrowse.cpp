@@ -514,10 +514,10 @@ void displayNowLoading(void) {
 static void refreshGridIcons(const std::vector<DirEntry> &entries, int centre, bool waitVBlank) {
 	const int gridCount = ThreeDSGridVisibleCount();
 	const int first = (ms().theme == TWLSettings::ETheme3DS)
-			? (centre / gridCount) * gridCount
+			? (ThreeDSCarousel() ? std::max(centre - 1, 0) : (centre / gridCount) * gridCount)
 			: std::max(centre - ICON_GRID_MAX_OFFSET, 0);
 	const int last = (ms().theme == TWLSettings::ETheme3DS)
-			? std::min(first + gridCount - 1, 39)
+			? (ThreeDSCarousel() ? std::min(centre + 1, 39) : std::min(first + gridCount - 1, 39))
 			: std::min(centre + ICON_GRID_MAX_OFFSET, 39);
 
 	for (int pos = first; pos <= last; pos++) {
@@ -3643,9 +3643,9 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				checkedDSiWareCompatibleB4DS = false;
 				dsiWareRAMLimitMsgPrepped = false;
 				infoCheckTimer = 0;
-			} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_UP)) {
+			} else if (ms().theme == TWLSettings::ETheme3DS && !ThreeDSCarousel() && (held & KEY_UP)) {
 				moveGridCursor(-ThreeDSGridColumns(), dirContents[scrn]);
-			} else if (ms().theme == TWLSettings::ETheme3DS && (held & KEY_DOWN)) {
+			} else if (ms().theme == TWLSettings::ETheme3DS && !ThreeDSCarousel() && (held & KEY_DOWN)) {
 				moveGridCursor(ThreeDSGridColumns(), dirContents[scrn]);
 			} else if ((pressed & KEY_UP) && (PAGENUM > 0 || CURPOS > 0 || !backFound) && (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL) && !dirInfoIniFound && (ms().sortMethod == 4) && (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))) { // Move apps (DSi & 3DS themes)
 				MoveModeState mv = beginMoveMode(scrn, dirContents, /* followStylus = */ false, 0);
@@ -3781,8 +3781,11 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 
 				// Same gate as the keypad move gesture, plus: only the box under the
 				// cursor can be picked up, and it has to be a real entry.
-				const int touchGridCol = (GridDensity == 2)
-						? std::clamp(startTouch.px / 64, 0, 3)
+				const int touchGridCol = ThreeDSCarousel()
+						? (startTouch.px >= 32 && startTouch.px < 96) ? 0
+						: (startTouch.px >= 112 && startTouch.px < 176) ? 1
+						: (startTouch.px >= 192 && startTouch.px < 256) ? 2 : -1
+						: (GridDensity == 2) ? std::clamp(startTouch.px / 64, 0, 3)
 						: (startTouch.px >= 8 && startTouch.px < 72) ? 0
 						: (startTouch.px >= 96 && startTouch.px < 160) ? 1
 						: (startTouch.px >= 184 && startTouch.px < 248) ? 2 : -1;
@@ -3790,7 +3793,8 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 						: (startTouch.py >= 102 && startTouch.py < 166) ? 1 : -1;
 				const bool touchOnGridTile = touchGridCol >= 0 && touchGridCol < ThreeDSGridColumns()
 						&& touchGridRow >= 0
-						&& CURPOS % ThreeDSGridVisibleCount() == touchGridRow * ThreeDSGridColumns() + touchGridCol;
+						&& (ThreeDSCarousel() ? touchGridCol == 1
+								: CURPOS % ThreeDSGridVisibleCount() == touchGridRow * ThreeDSGridColumns() + touchGridCol);
 				const bool canLift = !dirInfoIniFound
 						&& ms().sortMethod == TWLSettings::ESortCustom
 						&& ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL
@@ -3935,15 +3939,20 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 					endMoveMode(scrn, dirContents, mv);
 				} else if (tapped) {
 					if (ms().theme == TWLSettings::ETheme3DS) {
-						const int col = (GridDensity == 2) ? std::clamp(startTouch.px / 64, 0, 3)
+						const int col = ThreeDSCarousel()
+							? (startTouch.px >= 32 && startTouch.px < 96) ? 0
+							: (startTouch.px >= 112 && startTouch.px < 176) ? 1
+							: (startTouch.px >= 192 && startTouch.px < 256) ? 2 : -1
+							: (GridDensity == 2) ? std::clamp(startTouch.px / 64, 0, 3)
 							: (startTouch.px >= 8 && startTouch.px < 72) ? 0
 							: (startTouch.px >= 96 && startTouch.px < 160) ? 1
 							: (startTouch.px >= 184 && startTouch.px < 248) ? 2 : -1;
 						const int row = (startTouch.py >= 22 && startTouch.py < 86) ? 0
 							: (startTouch.py >= 102 && startTouch.py < 166) ? 1 : -1;
 						if (col >= 0 && col < ThreeDSGridColumns() && row >= 0) {
-							const int target = (CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount()
-									+ row * ThreeDSGridColumns() + col;
+							const int target = ThreeDSCarousel() ? std::clamp(CURPOS + col - 1, 0, last_used_box)
+									: (CURPOS / ThreeDSGridVisibleCount()) * ThreeDSGridVisibleCount()
+										+ row * ThreeDSGridColumns() + col;
 							if (target <= last_used_box) {
 								if (target == CURPOS) {
 									gameTapped = bannerTextShown && showSTARTborder;
