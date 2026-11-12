@@ -3645,9 +3645,15 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				dsiWareRAMLimitMsgPrepped = false;
 				infoCheckTimer = 0;
 			} else if (ms().theme == TWLSettings::ETheme3DS && !ThreeDSCarousel() && (held & KEY_UP)) {
-				if (CURPOS % 2 == 1) moveGridCursor(-1, dirContents[scrn]);
+				if (gridMoveCooldown == 0 && CURPOS % 2 == 1) {
+					moveGridCursor(-1, dirContents[scrn]);
+					gridMoveCooldown = 12;
+				}
 			} else if (ms().theme == TWLSettings::ETheme3DS && !ThreeDSCarousel() && (held & KEY_DOWN)) {
-				if (CURPOS % 2 == 0) moveGridCursor(1, dirContents[scrn]);
+				if (gridMoveCooldown == 0 && CURPOS % 2 == 0) {
+					moveGridCursor(1, dirContents[scrn]);
+					gridMoveCooldown = 12;
+				}
 			} else if ((pressed & KEY_UP) && (PAGENUM > 0 || CURPOS > 0 || !backFound) && (ms().theme != TWLSettings::EThemeSaturn && ms().theme != TWLSettings::EThemeHBL) && !dirInfoIniFound && (ms().sortMethod == 4) && (CURPOS + PAGENUM * 40 < ((int)dirContents[scrn].size()))) { // Move apps (DSi & 3DS themes)
 				MoveModeState mv = beginMoveMode(scrn, dirContents, /* followStylus = */ false, 0);
 
