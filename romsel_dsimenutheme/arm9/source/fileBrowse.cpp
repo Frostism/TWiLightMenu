@@ -3615,7 +3615,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 					settingsChanged = true;
 					snd().playSelect();
 			} else if ((held & KEY_LEFT) || ((held & KEY_TOUCH) && ((touch.py > 171 && touch.px < 19 && ms().theme == TWLSettings::EThemeDSi)
-					|| (touch.py >= 88 && touch.py <= 100 && touch.px < 18 && ms().theme == TWLSettings::ETheme3DS)))) { // Left or button arrow (DSi theme)
+					|| ((ThreeDSCarousel() ? (touch.py >= 136 && touch.py <= 156) : (touch.py >= 88 && touch.py <= 100)) && touch.px < 18 && ms().theme == TWLSettings::ETheme3DS)))) { // Left or button arrow (DSi theme)
 				if (ms().theme == TWLSettings::ETheme3DS) {
 					if (gridMoveCooldown == 0) {
 						moveGridCursorHorizontal(ThreeDSCarousel() ? -1 : -2, dirContents[scrn]);
@@ -3630,7 +3630,7 @@ std::string browseForFile(const std::vector<std::string_view> extensionList) {
 				dsiWareRAMLimitMsgPrepped = false;
 				infoCheckTimer = 0;
 			} else if ((held & KEY_RIGHT) || ((held & KEY_TOUCH) && ((touch.py > 171 && touch.px > 236 && ms().theme == TWLSettings::EThemeDSi)
-					|| (touch.py >= 88 && touch.py <= 100 && touch.px > 238 && ms().theme == TWLSettings::ETheme3DS)))) { // Right or button arrow (DSi theme)
+					|| ((ThreeDSCarousel() ? (touch.py >= 136 && touch.py <= 156) : (touch.py >= 88 && touch.py <= 100)) && touch.px > 238 && ms().theme == TWLSettings::ETheme3DS)))) { // Right or button arrow (DSi theme)
 				if (ms().theme == TWLSettings::ETheme3DS) {
 					if (gridMoveCooldown == 0) {
 						moveGridCursorHorizontal(ThreeDSCarousel() ? 1 : 2, dirContents[scrn]);
